@@ -1,9 +1,10 @@
 import os
 import shutil
 
-from compile.compile_err import CompilationError
+from compile.glow.glow_err import GlowError
 from compile.glow.form_cpp import form_edge_diff_cpp
 from compile.runner import Runner
+from compile.compile_utils import execute_cmd
 
 import numpy as np
 
@@ -45,11 +46,11 @@ class GlowRunner(Runner):
     def compile(self, model_path, build_dir):
         r = glow_compile(self.compiler_path, model_path, build_dir)
         if r:
-            raise CompilationError(model_path)
+            raise GlowError(model_path, r)
         self.form_cpp(build_dir, self.run_cpp_path)
         r = gcc_compile(build_dir)
         if r:
-            raise CompilationError(model_path)
+            raise GlowError(model_path, r)
 
     @staticmethod
     def get_output(run_dir):
@@ -61,16 +62,15 @@ class GlowRunner(Runner):
 
 
 def glow_compile(compiler_path, model_path, build_dir):
-    return os.system(
-        "%s -backend=CPU -model=%s -emit-bundle=%s -network-name=model"
-        % (compiler_path, model_path, build_dir))
+    return execute_cmd(compiler_path, "-backend=CPU", f"-model={model_path}",
+                       f"-emit-bundle={build_dir}", "-network-name=model")
 
 
 def gcc_compile(build_dir):
     last_wd = os.getcwd()
     os.chdir(build_dir)
     os.system("g++ -c run.cpp")
-    r = os.system("g++ run.o model.o -o main -no-pie")
+    r = execute_cmd("g++", "run.o", "model.o", "-o", "main", "-no-pie")
     os.chdir(last_wd)
     return r
 

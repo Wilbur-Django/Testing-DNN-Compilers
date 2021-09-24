@@ -5,9 +5,9 @@ import onnx
 import tvm
 from tvm import TVMError
 
-from compile.dispatch import Runner
-from compile.compile_utils import build_lib, get_context_target, lib_run
-from compile.compile_err import CompilationError
+from compile.runner import Runner
+from compile.tvm.tvm_utils import build_lib, get_context_target, lib_run
+from compile.tvm.tvm_err import TvmError
 
 
 class TVMRunner(Runner):
@@ -25,7 +25,7 @@ class TVMRunner(Runner):
         try:
             lib = build_lib(model, self.input_data, self.tgt)
         except TVMError as e:
-            raise CompilationError(model_path, str(e))
+            raise TvmError(model_path, str(e))
         lib.export_library(os.path.join(build_dir, "lib.tar"))
 
     def run_with_time(self, run_dir):

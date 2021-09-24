@@ -25,30 +25,41 @@ print("Result saving directory is", result_dir)
 graph_reduce_dir = os.path.join(result_dir, "graph")
 
 
-# def make_runner(is_graph_reduce):
-#     if args.compiler_name == 'glow':
-#         from compile.glow.glow import GlowRunner
-#         if is_graph_reduce:
-#             runner = GlowRunner(os.path.expanduser(args.compiler_path))
-#         else:
-#             runner = GlowRunner(os.path.expanduser(args.compiler_path), mode='node reduce')
-#     elif args.compiler_name == 'tvm':
-#         from compile.tvm import TVMRunner
-#         runner = TVMRunner(args.input_data_path)
-#     elif args.compiler_name == 'xla':
-#         from compile.xla.xla import XlaRunner
-#         runner = XlaRunner(os.path.expanduser(args.compiler_path), cal_time=False)
-#     elif args.compiler_name == 'onnx':
-#         from compile.onnx_runner.onnx_runner import OnnxRunner
-#         runner = OnnxRunner(args.compiler_path)
-#     else:
-#         raise Exception("Compiler name not supported")
-#
-#     return runner
+def get_fault_output(runner):
+    output_diff_file = os.path.join(compiler_output_dir, "output_diff.txt")
+    with open(output_diff_file, 'r') as f:
+        diff_line = [line for line in f.readlines()
+                    if line.split("$$$")[0] == str(args.err_model_id)]
+    if diff_line:
+        compile_fail = False
+        fault_output_dir = os.path.join(compiler_output_dir, "build", str(args.err_model_id))
+        fault_output = runner.get_output(fault_output_dir)
+        max_abs_diff = float(diff_line[0].split("$$$")[1])
+        return compile_fail, fault_output, max_abs_diff
+    else:
+        compile_fail = True
+        compile_err_file = os.path.join(compiler_output_dir, "compilation_failure_models.txt")
+        with open(compile_err_file, 'r') as f:
+            err_line = [line for line in f.readlines()
+                        if os.path.splitext(os.path.basename(line.split(" $$$ ")[0]))[0] ==
+                        str(args.err_model_id)][0]
+        err_code = err_line.strip().split(" $$$ ")[1]
+        return compile_fail, err_code
 
-# def get_fault_output(runner):
-compile_failed_log = os.path.join(compiler_output_dir, "")
-err_output_dir = os.path.join(compiler_output_dir, "build", "%d" % args.err_model_id)
+
+def make_judge(runner, save_dir):
+    compile_fail, fail_info = get_fault_output(runner)
+    if compile_fail:
+        fault_output, ori_abs_diff = None, None
+        err_code = fail_info
+    else:
+        fault_output, ori_abs_diff = fail_info
+        err_code = None
+
+    judge = JudgeFail(runner, compile_fail, save_dir,
+                      input_file=args.input_data_path, err_code=err_code,
+                      fault_output=fault_output, ori_abs_diff=ori_abs_diff)
+    return judge
 
 
 def graph_reduce():
@@ -61,9 +72,7 @@ def graph_reduce():
     runner = make_runner(args.compiler_name, args.compiler_path, args.input_data_path,
                          'default', False)
 
-    judge = JudgeFail(runner, args.compile_fail, graph_reduce_dir,
-                      err_output_dir=err_output_dir,
-                      input_file=args.input_data_path)
+    judge = make_judge(runner, graph_reduce_dir)
 
     applier = GraphApplier(model_dir, mut_info_dir, args.err_model_id)
 
@@ -81,35 +90,34 @@ def node_reduce():
     edges_output_dir = os.path.join(node_reduce_dir, "edge_output")
     node_reduce_run_dir = os.path.join(node_reduce_dir, "reduced_models")
 
-    reduced_model_id = max(int(model_id)
+    graph_reduced_model_id = max(int(model_id)
                            for model_id in os.listdir(graph_reduce_dir))
-    reduced_model_path = os.path.join(graph_reduce_dir, str(reduced_model_id),
-                                      "%d.onnx" % reduced_model_id)
+    graph_reduced_model_path = os.path.join(graph_reduce_dir, str(graph_reduced_model_id),
+                                      "%d.onnx" % graph_reduced_model_id)
 
-    applier = make_node_applier(reduced_model_path, args.input_data_path,
+    applier = make_node_applier(graph_reduced_model_path, args.input_data_path,
                                 edges_model_dir, edges_output_dir)
 
     runner = make_runner(args.compiler_name, args.compiler_path, args.input_data_path,
                          'node reduce', False)
 
-    judge = JudgeFail(runner, args.compile_fail, node_reduce_run_dir,
-                      err_output_dir=err_output_dir,
-                      input_file=args.input_data_path)
+    judge = make_judge(runner, node_reduce_run_dir)
 
     dd = DeltaDebugging(applier, judge)
     dd.run()
 
-    reduced_model_id = max(int(model_id)
+    node_reduced_model_id = max(int(model_id)
                            for model_id in os.listdir(node_reduce_run_dir))
-    model = onnx.load(os.path.join(node_reduce_run_dir,
-                                 str(reduced_model_id),
-                                 "%d.onnx" % reduced_model_id))
+    node_reduced_model_dir = os.path.join(node_reduce_run_dir, str(node_reduced_model_id))
+
+    final_reduced_model_path = os.path.join(result_dir, "reduced_model")
+    os.mkdir(final_reduced_model_path)
+
+    model = onnx.load(os.path.join(node_reduced_model_dir, "%d.onnx" % node_reduced_model_id))
     model = shape_inference.infer_shapes(model)
-    onnx.save(model, os.path.join(result_dir, "reduced_model.onnx"))
-    # shutil.copyfile(os.path.join(node_reduce_run_dir,
-    #                              str(reduced_model_id),
-    #                              "%d.onnx" % reduced_model_id),
-    #                 os.path.join(result_dir, "reduced_model.onnx"))
+    onnx.save(model, os.path.join(final_reduced_model_path, "reduced_model.onnx"))
+
+    shutil.copytree(node_reduced_model_dir, os.path.join(final_reduced_model_path, "build"))
 
 
 graph_reduce()

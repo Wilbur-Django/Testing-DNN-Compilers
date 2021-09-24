@@ -6,7 +6,7 @@ from arg import init_config, mutation_args
 
 args = init_config(mutation_args)
 
-result_dir = os.path.join("./results", args.model_name,
+result_dir = os.path.join(args.result_saving_dir, args.model_name,
                           str(args.seed_number), args.mutation_method)
 print("Result saving directory is:", result_dir)
 

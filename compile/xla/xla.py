@@ -8,7 +8,8 @@ import tensorflow as tf
 import onnx
 from onnx_tf.backend import prepare
 
-from compile.dispatch import Runner
+from compile.runner import Runner
+from compile.compile_utils import execute_cmd
 from compile.compile_err import CompilationError
 
 
@@ -36,14 +37,14 @@ class XlaRunner(Runner):
 
         shutil.copyfile(self.build_graph_file, "BUILD")
         # TODO: only show error and warning
-        r = os.system("bazel build @org_tensorflow//:graph")
+        r = execute_cmd("bazel", "build", "@org_tensorflow//:graph")
         if r:
-            raise CompilationError(model_path)
+            raise CompilationError(model_path, r)
 
         shutil.copyfile(self.build_so_file, "BUILD")
-        r = os.system("bazel build @org_tensorflow//:libmodel.so")
+        r = execute_cmd("bazel", "build", "@org_tensorflow//:libmodel.so")
         if r:
-            raise CompilationError(model_path)
+            raise CompilationError(model_path, r)
 
         os.chdir(last_wd)
 

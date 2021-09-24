@@ -4,21 +4,26 @@ import onnx
 import numpy as np
 
 from reduce import reduce_utils
+from compile.compile_err import CompilationError
 
 
 class JudgeFail:
     def __init__(self, runner, compile_fail, save_dir,
-                 err_output_dir=None, input_file=None, threshold=0.1):
+                 input_file=None, err_code=None,
+                 fault_output=None, ori_abs_diff=None, allowed_dev=0.1):
         self.save_dir = save_dir
         self.runner = runner
         self.id = 0
-        self.compile_fail = compile_fail
 
         self.runner.set_input(input_file)
 
-        if not compile_fail:
-            self.fault_output = self.runner.get_output(err_output_dir)
-            self.threshold = threshold
+        self.check_failed = self.check_compile_failed if compile_fail else self.check_run_failed
+
+        self.err_code = err_code
+
+        self.fault_output = fault_output
+        if ori_abs_diff is not None:
+            self.threshold = ori_abs_diff * allowed_dev
 
     def compile(self, model_path, build_dir):
         self.runner.compile(model_path, build_dir)
@@ -26,6 +31,21 @@ class JudgeFail:
     def run(self, run_dir):
         # self.runner.set_input(self.input_file)
         self.runner.run(run_dir)
+
+    def check_compile_failed(self, model_path, build_dir):
+        try:
+            self.compile(model_path, build_dir)
+        except CompilationError as e:
+            return e.get_err_code() == self.err_code
+        return False
+
+    def check_run_failed(self, model_path, build_dir):
+        try:
+            self.compile(model_path, build_dir)
+        except CompilationError:
+            return False
+        self.run(build_dir)
+        return self.is_close(build_dir)
 
     def remain_failed(self, model):
         self.id += 1
@@ -40,25 +60,13 @@ class JudgeFail:
         build_dir = os.path.join(save_path, "build")
         os.makedirs(build_dir, exist_ok=True)
 
-        if self.compile_fail:
-            try:
-                self.compile(model_path, build_dir)
-            except Exception:
-                return True
-            return False
-
-        self.compile(model_path, build_dir)
-        self.run(build_dir)
-        return self.is_close(build_dir)
+        return self.check_failed(model_path, build_dir)
 
     def is_close(self, run_dir):
         model_output = self.runner.get_output(run_dir)
-        diff = np.abs(model_output - self.fault_output)
-        rel_diff = diff / (
-                np.abs(self.fault_output) + np.abs(model_output) + 1e-9)
-        max_rel_diff = np.max(rel_diff)
-        print("Max relative diff is %f" % max_rel_diff)
-        return max_rel_diff < self.threshold
+        max_abs_diff = np.max(np.abs(model_output - self.fault_output))
+        print("Max absolute diff is %f" % max_abs_diff)
+        return max_abs_diff < self.threshold
 
 
 class DeltaDebugging:
