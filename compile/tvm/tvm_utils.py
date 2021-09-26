@@ -1,7 +1,5 @@
 import onnx
-from onnxsim import simplify
 
-import torch
 import tvm
 from tvm import relay
 from tvm.contrib import graph_runtime
@@ -38,6 +36,8 @@ def onnx2relay(model, input_shape):
 
 
 def pytorch2onnx(torch_model, torch_input, sample_output, save_path):
+    from onnxsim import simplify
+    import torch
     # set the model to inference mode
     torch_model.eval()
     # Export the model

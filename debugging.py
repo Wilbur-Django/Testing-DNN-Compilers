@@ -120,5 +120,11 @@ def node_reduce():
     shutil.copytree(node_reduced_model_dir, os.path.join(final_reduced_model_path, "build"))
 
 
+def view_edges():
+    runner = make_runner(args.compiler_name, args.compiler_path, args.input_data_path,
+                         'edge view', False)
+    # TODO: how to view edges
+
+
 graph_reduce()
 node_reduce()
