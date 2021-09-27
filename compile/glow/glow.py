@@ -24,20 +24,25 @@ class GlowRunner(Runner):
             self.run_cpp_path = os.path.join(cur_dir, "edge_view.cpp")
             self.form_cpp = form_edge_diff_cpp
 
-        self.run = self.run_with_time if cal_time else self.run_without_time
-
     def set_input(self, data_path):
         if data_path.endswith(".bin"):
             self.data_path = data_path
         else:
             self.data_path = np_to_bin(data_path)
 
-    def run_with_time(self, run_dir):
-        run_with_time(run_dir, self.data_path)
-        return self.get_run_time(run_dir)
+    def run(self, run_dir):
+        last_wd = os.getcwd()
+        os.chdir(run_dir)
+        if self.cal_time:
+            r = execute_cmd("./main", self.data_path, "-t")
+        else:
+            r = execute_cmd("./main", self.data_path)
+        os.chdir(last_wd)
 
-    def run_without_time(self, run_dir):
-        run_without_time(run_dir, self.data_path)
+        if r:
+            raise RuntimeError(str(r))
+
+        return r
 
     @staticmethod
     def get_run_time(run_dir):
@@ -77,20 +82,6 @@ def gcc_compile(build_dir):
 
 def trivial_prep_run_cpp(build_dir, run_cpp_path):
     shutil.copyfile(run_cpp_path, os.path.join(build_dir, "run.cpp"))
-
-
-def run_with_time(run_dir, data_path):
-    last_wd = os.getcwd()
-    os.chdir(run_dir)
-    os.system("./main %s -t" % data_path)
-    os.chdir(last_wd)
-
-
-def run_without_time(run_dir, data_path):
-    last_wd = os.getcwd()
-    os.chdir(run_dir)
-    os.system("./main %s" % data_path)
-    os.chdir(last_wd)
 
 
 def get_run_time(time_bin_path):

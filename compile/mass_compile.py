@@ -76,7 +76,13 @@ class MetaCompile:
 
         for dir_name in it:
             run_dir = os.path.join(self.build_root_dir, dir_name)
-            run_time = self.runner.run(run_dir)
+            try:
+                run_time = self.runner.run(run_dir)
+            except RuntimeError as e:
+                shutil.rmtree(run_dir)
+                with open(self.err_summary_file, 'a') as f:
+                    f.write(f"{run_dir} $$$ {str(e)}\n")
+                continue
             it.set_time(run_time)
 
     def compare_output(self):
