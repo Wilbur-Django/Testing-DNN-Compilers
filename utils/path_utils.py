@@ -13,3 +13,6 @@ def path_append_timestamp(save_dir):
     save_path = os.path.join(os.path.curdir, save_dir, sub_dir_name)
     os.makedirs(save_path, exist_ok=True)
     return save_path
+
+def norm_user_path(user_path):
+    return os.path.expanduser(user_path)

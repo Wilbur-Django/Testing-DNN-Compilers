@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import onnx
 from onnx import shape_inference
 
@@ -29,6 +28,7 @@ reduced_model_path = os.path.join(result_dir, "model.onnx")
 reduced_model_build_dir = os.path.join(result_dir, "build")
 debug_info_file = os.path.join(result_dir, "debug_info.txt")
 edge_diff_file = os.path.join(result_dir, "edge_diff.txt")
+onnx_edge_value_dir = os.path.join(result_dir, "onnx_edges_value")
 
 temp_dir = os.path.join(result_dir, "temp")
 
@@ -118,8 +118,9 @@ def view_edges():
     runner = make_runner(args.compiler_name, args.compiler_path, args.input_data_path,
                          'edge view', False)
     model = onnx.load(reduced_model_path)
-    compare_onnx_compiler_edge_value(model, runner, temp_dir, args.input_data_path,
-                                     edge_diff_file)
+    compare_onnx_compiler_edge_value(model, runner, fault_output,
+                                     temp_dir, args.input_data_path,
+                                     edge_diff_file, onnx_edge_value_dir)
 
 
 graph_reduce()

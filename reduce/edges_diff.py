@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import shutil
 
@@ -9,8 +11,11 @@ from reduce.reduce_utils import get_non_const_edges_info, prepare_run_dir
 from utils.onnx_utils import onnx_run
 
 
-def compare_onnx_compiler_edge_value(model, runner: compile.runner.Runner, run_dir,
-                                     data_path, output_file):
+def compare_onnx_compiler_edge_value(model, runner: compile.runner.Runner,
+                                     fault_output,
+                                     run_dir, data_path,
+                                     output_file, onnx_edge_save_dir):
+    os.makedirs(onnx_edge_save_dir, exist_ok=True)
     model_path, build_dir = prepare_run_dir(run_dir)
 
     input_data = np.load(data_path)
@@ -28,9 +33,12 @@ def compare_onnx_compiler_edge_value(model, runner: compile.runner.Runner, run_d
         model.graph.output.remove(edge)
 
         output_abs_diff = np.max(
-            np.abs(runner_output_value.flatten()- onnx_output_value.flatten()))
+            np.abs(runner_output_value.flatten()- fault_output.flatten()))
 
         edge_diff.append(("%f" % output_abs_diff, *array_diff(runner_edge_value, onnx_edge_value)))
+
+        np.savetxt(os.path.join(onnx_edge_save_dir, f"{edge.name}.txt"),
+                   onnx_edge_value.flatten(), fmt="%.8f")
 
     write_output_diff(output_file, edge_diff, [e.name for e in edges_info])
     shutil.rmtree(run_dir)
