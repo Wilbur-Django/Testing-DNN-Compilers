@@ -1,12 +1,12 @@
 import copy
+import shutil
 
 import onnx
-from onnx import shape_inference
 import numpy as np
 import os
 
 from reduce import reduce_utils
-from mutation.utils import name_obj_dict, onnx_run
+from utils.onnx_utils import onnx_run
 
 
 class NodeApplier:
@@ -34,45 +34,26 @@ class NodeApplier:
         return model
 
 
-def get_inner_non_const_nodes(model):
-    return [n for n in model.graph.node
-            if 'Constant' not in n.name and 'output' not in n.output]
-
-
-def add_output(model, view_edges, model_save_dir):
-    os.makedirs(model_save_dir, exist_ok=True)
-    model = shape_inference.infer_shapes(model)
-
-    name_edge_mapping = name_obj_dict(model.graph.value_info)
-    all_edges = [name_edge_mapping[e_name] for e_name in view_edges]
-
-    for edge_name, edge in zip(view_edges, all_edges):
+def get_edges_value(model, edge_info_list, input_data, temp_dir):
+    model_path = os.path.join(temp_dir, "model.onnx")
+    edge_value_list = []
+    for edge in edge_info_list:
         model.graph.output.insert(0, edge)
-        onnx.save(model, os.path.join(model_save_dir, "%s.onnx" % edge_name))
+        onnx.save(model, model_path)
+        edge_value, _ = onnx_run(input_data, model_path)
         model.graph.output.remove(edge)
+        edge_value_list.append(edge_value)
+
+    return edge_value_list
 
 
-def get_edges_output(models_dir, output_dir, input_data):
-    os.makedirs(output_dir, exist_ok=True)
-    for file_name in os.listdir(models_dir):
-        model_name = os.path.splitext(file_name)[0]
-        result_dir = os.path.join(output_dir, model_name)
-        os.makedirs(result_dir, exist_ok=True)
+def make_node_applier(model_path, input_file, temp_dir):
+    os.makedirs(temp_dir, exist_ok=True)
+    model = onnx.load(model_path)
+    delta_nodes = reduce_utils.get_inner_non_const_nodes(model)
+    edges_info = reduce_utils.get_non_const_edges_info(model)
 
-        edge_out, out = onnx_run(input_data, os.path.join(models_dir, file_name))
-        np.save(os.path.join(result_dir, "out.npy"), out)
-        np.save(os.path.join(result_dir, "edge.npy"), edge_out)
-
-
-def make_node_applier(reduced_model_path, input_file, model_save_dir, output_dir):
-    model = onnx.load(reduced_model_path)
-    delta_nodes = get_inner_non_const_nodes(model)
-    view_edges = [n.output[0] for n in delta_nodes]
-
-    add_output(model, view_edges, model_save_dir)
-    get_edges_output(model_save_dir, output_dir, np.load(input_file))
-
-    edge_val = [np.load(os.path.join(output_dir, n.output[0], "edge.npy"))
-                for n in delta_nodes]
+    edge_val = get_edges_value(model, edges_info, np.load(input_file), temp_dir)
+    shutil.rmtree(temp_dir)
 
     return NodeApplier(model, delta_nodes, edge_val)

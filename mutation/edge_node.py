@@ -1,3 +1,4 @@
+import utils.onnx_utils
 from mutation import utils
 from mutation.shape_utils import get_dim
 from mutation.utils import make_value_info
@@ -12,7 +13,7 @@ class EdgeNode:
 
 
 def convert_onnx_to_edge(graph):
-    name_edge_mapping = utils.name_obj_dict(graph.value_info)
+    name_edge_mapping = utils.onnx_utils.name_obj_dict(graph.value_info)
     edges = []
 
     for node in graph.node:

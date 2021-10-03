@@ -1,6 +1,0 @@
-pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow_cpu-2.5.0-cp39-cp39-manylinux2010_x86_64.whl
-https://www.tensorflow.org/install/pip#package-location
-
-conda install -c anaconda bazel==3.7.2
-
-./configure

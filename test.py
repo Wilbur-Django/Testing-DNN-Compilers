@@ -1,26 +1,20 @@
-import re
+import os
+import shutil
 
-from compile.compile_err import CompilationError
-from compile.compile_utils import execute_cmd
+ori_root_dir = "/export/d2/dwxiao/results"
+new_root_dir = "/export/d2/dwxiao/build_run"
 
-# model_path = "/export/d1/dwxiao/TVM/results/resnet18/1/hybrid/glow/reduce/841/reduced_model.onnx"
-# model_path = "../temp/reduced_model.onnx"
-#
-# cmd_list = ['/export/d1/dwxiao/glow-build/bin/model-compiler',
-#                 '-backend=CPU',
-#                 '-model=%s' % model_path,
-#                 '-emit-bundle=/export/d1/dwxiao/TVM/tmp_models',
-#                 '-network-name=model']
-# r = execute_cmd(*cmd_list)
-# s = bytes.decode(r)
-#
-# p = re.compile("Error code: (\w+)")
-# m = p.search(s)
-# if m:
-#     print(m.group(1))
-
-from compile.make_runner import make_runner
-
-runner = make_runner('tvm', None, '../data/data.npy', 'default', False)
-
-runner.compile("/export/d1/dwxiao/TVM/results/resnet18/1/hybrid/mutants/models/31.onnx", "../temp")
+for model_name in os.listdir(ori_root_dir):
+    model_dir = os.path.join(ori_root_dir, model_name)
+    for seed_number in os.listdir(model_dir):
+        if seed_number == "6371":
+            shutil.rmtree(os.path.join(model_dir, seed_number))
+            continue
+        ori_build_dir = os.path.join(model_dir, seed_number, "hybrid", "tvm")
+        if not os.path.exists(ori_build_dir):
+            continue
+        if os.path.exists(os.path.join(ori_build_dir, "build")):
+            shutil.rmtree(os.path.join(ori_build_dir, "build"))
+        # mutants_dir = os.path.join(model_dir, seed_number, "hybrid", "mutants", "mut_info")
+        new_dir = os.path.join(new_root_dir, "tvm", model_name, seed_number, "hybrid")
+        shutil.move(ori_build_dir, new_dir)

@@ -1,5 +1,3 @@
-import os
-
 import onnx
 import numpy as np
 
@@ -44,21 +42,19 @@ class JudgeFail:
             self.compile(model_path, build_dir)
         except CompilationError:
             return False
-        self.run(build_dir)
+        try:
+            self.run(build_dir)
+        except RuntimeError:
+            return False
         return self.is_close(build_dir)
 
     def remain_failed(self, model):
         self.id += 1
         print("=================================")
         print("Running %s:" % self.id)
-        save_path = os.path.join(self.save_dir, "%d" % self.id)
-        os.makedirs(save_path, exist_ok=True)
+        model_path, build_dir = reduce_utils.prepare_run_dir(self.save_dir)
 
-        model_path = os.path.join(save_path, "%d.onnx" % self.id)
         onnx.save(model, model_path)
-
-        build_dir = os.path.join(save_path, "build")
-        os.makedirs(build_dir, exist_ok=True)
 
         return self.check_failed(model_path, build_dir)
 

@@ -6,7 +6,12 @@ from compile.mass_compile import compiler_run
 
 args = init_config(compilation_args)
 
-result_dir = os.path.join(args.mutants_dir, args.compiler_name)
+mutant_models_dir = os.path.join(args.mutants_dir, args.model_name, str(args.seed_number),
+                                 args.mutation_method, "models")
+
+result_dir = os.path.join(args.compile_record_dir, args.compiler_name,
+                          args.model_name, str(args.seed_number),
+                          args.mutation_method)
 print("Result saving directory is", result_dir)
 
 build_dir = os.path.join(result_dir, "build")
@@ -17,7 +22,7 @@ err_summary_file = os.path.join(result_dir, "compilation_failure_models.txt")
 err_full_info_dir = os.path.join(result_dir, "error_info")
 
 compiler_run(args.compiler_name, os.path.expanduser(args.compiler_path),
-             os.path.join(args.mutants_dir, "mutants", "models"),
+             mutant_models_dir,
              args.input_data_path, build_dir,
              err_summary_file, err_full_info_dir,
              time_record_dir, output_diff_file,

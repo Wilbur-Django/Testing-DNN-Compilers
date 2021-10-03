@@ -1,7 +1,14 @@
+import os
+import shutil
+
 import onnx
+from onnx import shape_inference
+
 import numpy as np
 
 from collections import deque
+
+from utils.onnx_utils import name_obj_dict
 
 
 def parse_node_idx(node):
@@ -165,3 +172,28 @@ def remove_unref_nodes(graph):
     deleted_input = set(edge_input_map.keys()).difference(retained_input_names)
     for name in deleted_input:
         graph.input.remove(edge_input_map[name])
+
+
+def prepare_run_dir(save_dir):
+    if os.path.exists(save_dir):
+        shutil.rmtree(save_dir)
+
+    build_dir = os.path.join(save_dir, "build")
+    os.makedirs(build_dir)
+
+    model_path = os.path.join(save_dir, "model.onnx")
+
+    return model_path, build_dir
+
+def get_inner_non_const_nodes(model):
+    output_names = [o.name for o in model.graph.output]
+    return [n for n in model.graph.node
+            if n.op_type != 'Constant' and n.output[0] not in output_names]
+
+
+def get_non_const_edges_info(model):
+    model = shape_inference.infer_shapes(model)
+    edges_name = [n.output[0] for n in get_inner_non_const_nodes(model)]
+    name_info_mapping = name_obj_dict(model.graph.value_info)
+    edges_info = [name_info_mapping[name] for name in edges_name]
+    return edges_info

@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 
 from compile.glow.glow_err import GlowError
 from compile.glow.form_cpp import form_edge_diff_cpp
@@ -12,6 +13,7 @@ import numpy as np
 class GlowRunner(Runner):
     def __init__(self, compiler_path, data_path, mode, cal_time):
         super().__init__(compiler_path, data_path, mode, cal_time)
+        self.set_input(data_path)
 
         cur_dir = os.path.dirname(__file__)
         if mode == 'default':
@@ -42,11 +44,17 @@ class GlowRunner(Runner):
         if r:
             raise RuntimeError(str(r))
 
-        return r
+        if self.cal_time:
+            return self.get_run_time(run_dir)
 
     @staticmethod
     def get_run_time(run_dir):
         return get_run_time(os.path.join(run_dir, "time.bin"))
+
+    def debug_compile(self, model_path, build_dir, debug_info_file):
+        dump_ir(self.compiler_path, model_path, build_dir, debug_info_file)
+        self.form_cpp(build_dir, self.run_cpp_path)
+        gcc_compile(build_dir)
 
     def compile(self, model_path, build_dir):
         r = glow_compile(self.compiler_path, model_path, build_dir)
@@ -69,6 +77,13 @@ class GlowRunner(Runner):
 def glow_compile(compiler_path, model_path, build_dir):
     return execute_cmd(compiler_path, "-backend=CPU", f"-model={model_path}",
                        f"-emit-bundle={build_dir}", "-network-name=model")
+
+
+def dump_ir(compiler_path, model_path, build_dir, dump_file):
+    subprocess.run([compiler_path, "-backend=CPU", f"-model={model_path}",
+                    f"-emit-bundle={build_dir}", "-network-name=model",
+                    "-dump-ir-after-all-passes"],
+                   stdout=open(dump_file, 'w'))
 
 
 def gcc_compile(build_dir):

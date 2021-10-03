@@ -8,4 +8,7 @@ class GlowError(CompilationError):
 
     def get_err_code(self):
         m = re.search("Error code: (\w+)", self.err_info)
-        return m.group(1)
+        if m:
+            return m.group(1)
+        else:
+            return None

@@ -3,9 +3,9 @@ import time
 
 import numpy as np
 import onnx
-import tvm
 from tvm import TVMError
 
+import compile.compile_utils
 from compile.runner import Runner
 from compile.tvm.tvm_err import TvmError
 from compile.tvm import tvm_build
@@ -25,11 +25,11 @@ class TVMRunner(Runner):
             tvm_build.build_model(onnx_model, build_dir)
         except TVMError as e:
             raise TvmError(model_path, str(e))
-        tvm_build.write_in_out_info(os.path.join(build_dir, "in_out.txt"), onnx_model)
+        compile.compile_utils.write_in_out_info(os.path.join(build_dir, "in_out.txt"), onnx_model)
 
     def run(self, run_dir):
         gmod = tvm_build.load_lib(run_dir)
-        has_input, has_two_output = tvm_build.read_in_out_info(
+        has_input, has_two_output = compile.compile_utils.read_in_out_info(
             os.path.join(run_dir, "in_out.txt"))
         result = tvm_build.run_graph_module(gmod, has_input, has_two_output, self.input_data)
         start_time = time.time()

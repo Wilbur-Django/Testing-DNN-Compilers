@@ -1,5 +1,6 @@
 import onnx
 
+import utils.onnx_utils
 from mutation import utils, attr_gen, shape_utils
 from mutation.edge_node import EdgeNode
 
@@ -247,6 +248,6 @@ class NodeChainGen(NodeGen):
 
 
 def make_node_chain_generator(model):
-    max_node_idx = utils.get_max_node_idx(model.graph)
-    max_edge_idx = utils.get_max_edge_idx(model.graph)
+    max_node_idx = utils.onnx_utils.get_max_node_idx(model.graph)
+    max_edge_idx = utils.onnx_utils.get_max_edge_idx(model.graph)
     return NodeChainGen(max_node_idx + 1, max_edge_idx + 1)

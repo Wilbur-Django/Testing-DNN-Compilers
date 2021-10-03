@@ -1,18 +1,8 @@
-import datetime
-import os
-import random
-import re
-
 import onnx
-import onnxruntime as rt
 
 import numpy as np
 
-from mutation.shape_utils import shape_match, get_dim
-
-
-def name_obj_dict(objs):
-    return {obj.name: obj for obj in objs}
+from utils.onnx_utils import onnx_run, name_obj_dict
 
 
 def convert2iter(o):
@@ -58,40 +48,6 @@ def get_internal_edge_output(model, edge, input_data, temp_save_path):
     return out_list[0]
 
 
-def onnx_run(input_data, model_path):
-    sess = rt.InferenceSession(model_path)
-    input_name = sess.get_inputs()[0].name
-    output_name = [o.name for o in sess.get_outputs()]
-    out = sess.run(output_name, {input_name: input_data})
-    return out
-
-
-def print_onnx_graph(model):
-    print(onnx.helper.printable_graph(model.graph))
-
-
-def get_max_name_idx(name_list):
-    pattern = re.compile(r"\d+")
-    max_idx = 0
-    for name in name_list:
-        m = pattern.findall(name)
-        if not m:
-            continue
-        max_idx = max(max([int(t) for t in m]), max_idx)
-    return max_idx
-
-
-def get_max_node_idx(graph):
-    return get_max_name_idx([n.name for n in graph.node])
-
-
-def get_max_edge_idx(graph):
-    input_names = [i for n in graph.node for i in n.input]
-    output_names = [o for n in graph.node for o in n.output]
-    input_names.extend(output_names)
-    return get_max_name_idx(input_names)
-
-
 def get_ordered_inner_edges(graph):
     value_info_name_mapping = name_obj_dict(graph.value_info)
     edge_def_order = [out for node in graph.node for out in node.output]
@@ -115,55 +71,8 @@ def non_node_output_edges(graph):
     return non_node_def_edges
 
 
-def get_ins_start_end(graph, shape_constrain):
-    inner_edges = get_ordered_inner_edges(graph)
-    for i in range(0, 5):
-        start_idx = random.randrange(0, len(inner_edges))
-        input_edge = inner_edges[start_idx]
-        matched = shape_match(inner_edges, start_idx, input_edge, shape_constrain)
-        if not matched:
-            continue
-        end_idx = random.randrange(0, len(matched))
-        output_name = matched[end_idx]
-        # print(len(matched))
-        # print(matched)
-        print("Insertion start:", input_edge.name)
-        print("Insertion end:", output_name)
-        return input_edge.name, output_name
-
-
 def to_numpy(tensor):
     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
-
-
-def path_append_timestamp(save_dir):
-    sub_dir_name = datetime.datetime.now().strftime("%m%d_%H%M%S")
-    save_path = os.path.join(os.path.curdir, save_dir, sub_dir_name)
-    os.makedirs(save_path, exist_ok=True)
-    return save_path
-
-
-def seed_mut_path(root_dir):
-    mutation_save_path = path_append_timestamp(root_dir)
-    print(os.path.abspath(mutation_save_path))
-    seed_save_path = os.path.join(mutation_save_path, "seed.onnx")
-    return seed_save_path, mutation_save_path
-
-
-def array_diff(out, cmp_array, debug=False):
-    diff = np.abs(out - cmp_array)
-    max_abs_diff = np.max(diff)
-    max_abs_idx = np.argmax(diff)
-    rel_diff = (diff / (cmp_array + 1e-9))
-    max_rel_diff = np.max(rel_diff)
-    max_rel_idx = np.argmax(rel_diff)
-    if debug:
-        print(out)
-        print(cmp_array)
-        print(diff)
-        print(max_abs_diff, max_abs_idx)
-        print(max_rel_diff, max_rel_idx)
-    return max_abs_diff, max_abs_idx, max_rel_diff, max_rel_idx
 
 
 def make_value_info(name, shape, tensor_type=onnx.TensorProto.FLOAT):
