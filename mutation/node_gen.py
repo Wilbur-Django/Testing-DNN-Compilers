@@ -45,7 +45,7 @@ class ElementGen:
 
     @staticmethod
     def new_tensor(np_val, node_name, attr_name):
-        data_type = utils.numpy_onnx_type_mapping(np_val.dtype)
+        data_type = mutate_utils.numpy_onnx_type_mapping(np_val.dtype)
 
         return onnx.helper.make_tensor(
             name=ElementGen.new_tensor_name(node_name, attr_name),
@@ -111,7 +111,7 @@ class NodeGen:
         return node, out_shape, node.output[0]
 
     def make_node(self, op_type, input_edges_name, attr_dict=None):
-        input_edges_name = utils.convert2iter(input_edges_name)
+        input_edges_name = mutate_utils.convert2iter(input_edges_name)
         if attr_dict:
             node = self.elem_gen.new_node(op_type, input_edges_name, **attr_dict)
         else:
@@ -128,7 +128,7 @@ class NodeChainGen(NodeGen):
             in_edge.name, in_edge.shape, weight.name, weight.shape
         )
         conv_edge = EdgeNode(conv_out_name, conv_out_shape, conv_node,
-                             in_edge.zero or utils.is_val_zero(np_kernel_val))
+                             in_edge.zero or mutate_utils.is_val_zero(np_kernel_val))
         new_edges.append(conv_edge)
         return conv_edge
 
@@ -172,7 +172,7 @@ class NodeChainGen(NodeGen):
     def substitute_edge(self, substituted_edge):
         node = substituted_edge.def_node
         new_output_name = self.elem_gen.new_edge_name()
-        utils.replace_node_output(node, new_output_name)
+        mutate_utils.replace_node_output(node, new_output_name)
         new_output_edge = EdgeNode(
             new_output_name, substituted_edge.shape, node, substituted_edge.zero
         )
@@ -180,7 +180,7 @@ class NodeChainGen(NodeGen):
         return new_output_edge
 
     def make_edge_node(self, op_type, in_edges, out_shape, zero):
-        in_edges = utils.convert2iter(in_edges)
+        in_edges = mutate_utils.convert2iter(in_edges)
         node = self.make_node(op_type, [e.name for e in in_edges], None)
         edge = EdgeNode(node.output[0], out_shape, node, zero)
         return edge
