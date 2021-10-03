@@ -7,7 +7,7 @@ import pickle
 import onnx
 from onnx import shape_inference
 
-from mutation import edge_node, utils
+from mutation import edge_node, mutate_utils
 from mutation.node_gen import make_node_chain_generator
 from mutation.guard_gen import GuardDispatcher
 from mutation.dead_gen import DeadGenerator
@@ -108,8 +108,8 @@ def insert_dead_edges(edge_node_list, model, subs_place, gen, dead_edges):
         model.graph.value_info.append(onnx_edge)
 
     new_onnx_nodes = edge_node.retrieve_node_from_edges(new_edges)
-    utils.insert_list(model.graph.node, new_onnx_nodes, subs_place)
+    mutate_utils.insert_list(model.graph.node, new_onnx_nodes, subs_place)
 
-    utils.insert_list(edge_node_list, new_edges, subs_place)
+    mutate_utils.insert_list(edge_node_list, new_edges, subs_place)
 
     return new_edges[:-2], subs_new, subs_add

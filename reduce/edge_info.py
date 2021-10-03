@@ -2,7 +2,7 @@ import copy
 
 from mutation.node_gen import NodeChainGen
 from mutation.edge_node import EdgeNode
-from mutation.utils import replace_node_output
+from mutation.mutate_utils import replace_node_output
 from reduce import reduce_utils
 
 

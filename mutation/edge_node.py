@@ -1,7 +1,7 @@
 import utils.onnx_utils
-from mutation import utils
+from mutation import mutate_utils
 from mutation.shape_utils import get_dim
-from mutation.utils import make_value_info
+from mutation.mutate_utils import make_value_info
 
 
 class EdgeNode:

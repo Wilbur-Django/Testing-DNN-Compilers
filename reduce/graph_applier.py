@@ -6,7 +6,7 @@ import onnx
 from mutation.edge_node import EdgeNode, convert_onnx_to_edge
 from mutation.fcb_mut import read_mut_info
 from mutation.node_gen import NodeChainGen
-from mutation.utils import insert_list
+from mutation.mutate_utils import insert_list
 from utils.onnx_utils import get_max_node_idx, get_max_edge_idx
 from reduce.edge_info import PlainEdge, SubsEdge, set_subs_place
 from reduce.reduce_utils import make_model

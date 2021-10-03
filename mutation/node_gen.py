@@ -1,7 +1,7 @@
 import onnx
 
 import utils.onnx_utils
-from mutation import utils, attr_gen, shape_utils
+from mutation import mutate_utils, attr_gen, shape_utils
 from mutation.edge_node import EdgeNode
 
 

@@ -4,7 +4,7 @@ import numpy as np
 
 from mutation.node_gen import NodeChainGen
 from mutation.edge_node import EdgeNode, convert_edge_to_value_info
-from mutation import utils
+from mutation import mutate_utils
 
 
 class UniversalGuard:
@@ -97,7 +97,7 @@ class InputDependentGuard:
             model.graph.node.insert(edge_idx + 1, reduce_edge.def_node)
 
         onnx_edge = convert_edge_to_value_info([reduce_edge])[0]
-        guard_val = utils.get_internal_edge_output(
+        guard_val = mutate_utils.get_internal_edge_output(
             model, onnx_edge, self.input_data, self.tmp_path)
 
         if new_edges:
