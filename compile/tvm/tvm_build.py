@@ -10,7 +10,7 @@ def build_model(onnx_model, build_dir):
     shape_dict = {i.name: get_dim(i) for i in onnx_model.graph.input}
     mod, params = relay.frontend.from_onnx(onnx_model, shape_dict)
     target = tvm.target.Target("llvm", host="llvm")
-    with tvm.transform.PassContext(opt_level=4):
+    with tvm.transform.PassContext(opt_level=2):
         lib = relay.build(mod, target=target, params=params)
     lib.export_library(os.path.join(build_dir, "compiled_lib.so"))
 

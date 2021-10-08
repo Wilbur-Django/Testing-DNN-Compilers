@@ -18,7 +18,7 @@ pip install -e .
 
 ## Configure tensorflow
 ```shell
-git clone --depth=1 https://github.com/tensorflow/tensorflow.git
+git clone --depth=1 git@github.com:tensorflow/tensorflow.git
 cd tensorflow
 ./configure
 ```

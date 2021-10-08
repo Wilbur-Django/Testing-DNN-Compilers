@@ -28,17 +28,22 @@ def compare_onnx_compiler_edge_value(model, runner: compile.runner.Runner,
         model.graph.output.insert(0, edge)
         onnx.save(model, model_path)
         onnx_edge_value, onnx_output_value = onnx_run(input_data, model_path)
-        runner_edge_value, runner_output_value = runner.compile_run(
-            model_path, build_dir, view_edge=True)
+        np.savetxt(os.path.join(onnx_edge_save_dir, f"{edge.name}.txt"),
+                   onnx_edge_value.flatten(), fmt="%.8f")
+
+        try:
+            runner_edge_value, runner_output_value = runner.compile_run(
+                model_path, build_dir, view_edge=True)
+        except Exception:
+            model.graph.output.remove(edge)
+            continue
+
         model.graph.output.remove(edge)
 
         output_abs_diff = np.max(
             np.abs(runner_output_value.flatten()- fault_output.flatten()))
 
         edge_diff.append(("%f" % output_abs_diff, *array_diff(runner_edge_value, onnx_edge_value)))
-
-        np.savetxt(os.path.join(onnx_edge_save_dir, f"{edge.name}.txt"),
-                   onnx_edge_value.flatten(), fmt="%.8f")
 
     write_output_diff(output_file, edge_diff, [e.name for e in edges_info])
     shutil.rmtree(run_dir)
