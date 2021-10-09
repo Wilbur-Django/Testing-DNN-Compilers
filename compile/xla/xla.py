@@ -29,9 +29,7 @@ class XlaRunner(Runner):
 
     def compile(self, model_path, build_dir):
         onnx_model = onnx.load(model_path)
-        onnx2tf(onnx_model, build_dir)
-        shutil.copyfile(os.path.join(build_dir, "graph.pb"),
-                        os.path.join(self.compiler_path, "graph.pb"))
+        onnx2tf(onnx_model, self.compiler_path)
 
         write_in_out_info(os.path.join(build_dir, "in_out.txt"), onnx_model)
         manager = select_manager(self.mode, os.path.join(build_dir, "in_out.txt"))
@@ -53,11 +51,8 @@ class XlaRunner(Runner):
 
         os.chdir(last_wd)
 
-        shutil.copyfile(os.path.join(self.compiler_path, "bazel-bin", "libmodel.so"),
-                        os.path.join(build_dir, "libmodel.so"))
-
     def run(self, run_dir):
-        lib = get_lib(run_dir)
+        lib = get_lib(os.path.join(self.compiler_path, "bazel-bin"))
         manager = select_manager(self.mode, os.path.join(run_dir, "in_out.txt"))
         output = manager.predict(lib, self.input_data)
         np.save(os.path.join(run_dir, "out.npy"), output)
@@ -81,8 +76,8 @@ class XlaRunner(Runner):
         return np.load(os.path.join(run_dir, "edge.npy"))
 
 
-def get_lib(run_dir):
-    lib = np.ctypeslib.load_library('libmodel', run_dir)
+def get_lib(compile_output_dir):
+    lib = np.ctypeslib.load_library('libmodel', compile_output_dir)
     return lib
 
 

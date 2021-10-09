@@ -123,7 +123,7 @@ def view_edges():
                                      edge_diff_file, onnx_edge_value_dir)
 
 
-# graph_reduce()
-# node_reduce()
+graph_reduce()
+node_reduce()
 if not compile_fail:
     view_edges()
