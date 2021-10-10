@@ -2,9 +2,13 @@ import os
 
 import numpy as np
 
-temp_dir = "/export/d2/dwxiao/temp"
+from compile.xla.compile_manager import DefaultManager
 
-a = np.random.normal(size=(4, 32, 32, 64)).astype(np.float32)
+temp_dir = "/export/temp"
 
-np.savetxt(os.path.join(temp_dir, "a.txt"), a.flatten(), fmt="%.8f")
+a = np.load("/root/data/data.npy")
 
+m = DefaultManager()
+
+lib = np.ctypeslib.load_library('libmodel', temp_dir)
+print(m.predict(lib, a))

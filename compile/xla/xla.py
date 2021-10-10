@@ -59,13 +59,12 @@ class XlaRunner(Runner):
         if self.cal_time:
             return self.cal_run_time(manager, lib)
 
-    def cal_run_time(self, manager, lib):
+    def cal_run_time(self, manager, lib, repeat_times=100):
         start = time.time()
-        # Repeat 5 times
-        for i in range(5):
+        for i in range(repeat_times):
             manager.predict(lib, self.input_data)
         end = time.time()
-        return (end - start) * 200
+        return (end - start) * 1000 / repeat_times
 
     @staticmethod
     def get_output(run_dir):

@@ -18,12 +18,12 @@ from compile.make_runner import make_runner
 
 compiler_name = 'xla'
 compiler_path = "/root/tensorflow"
-model_path = "/export/mutants/mobilenet/1/hybrid/models/seed.onnx"
+model_path = "/export/mutants/mobilenet/6371/hybrid/models/101.onnx"
 build_dir = "/export/temp"
 
 runner = make_runner(compiler_name, compiler_path, "../data/data.npy",
-                     'default', False)
+                     'default', True)
 
 runner.compile(model_path, build_dir)
-runner.run(build_dir)
+print("Time is", runner.run(build_dir))
 print(runner.get_output(build_dir))

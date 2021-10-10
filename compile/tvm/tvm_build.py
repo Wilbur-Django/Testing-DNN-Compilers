@@ -1,4 +1,5 @@
 import os
+import time
 
 import tvm
 from tvm import relay
@@ -34,4 +35,11 @@ def run_graph_module(gmod, has_input, has_two_output, input_data=None):
     else:
         return tvm_output
 
-
+def cal_run_time(gmod, has_input, input_data=None, repeat_times=20):
+    st_time = time.time()
+    for _ in range(repeat_times):
+        if has_input:
+            gmod.set_input("input", tvm.nd.array(input_data))
+        gmod.run()
+    ed_time = time.time()
+    return (ed_time - st_time) * 1000 / repeat_times

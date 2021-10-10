@@ -32,17 +32,14 @@ class TVMRunner(Runner):
         has_input, has_two_output = compile.compile_utils.read_in_out_info(
             os.path.join(run_dir, "in_out.txt"))
         result = tvm_build.run_graph_module(gmod, has_input, has_two_output, self.input_data)
-        start_time = time.time()
-        if self.cal_time:
-            for _ in range(5):
-                tvm_build.run_graph_module(gmod, has_input, has_two_output, self.input_data)
-        end_time = time.time()
         if has_two_output:
             np.save(os.path.join(run_dir, "out.npy"), result[0])
             np.save(os.path.join(run_dir, "edge.npy"), result[1])
         else:
             np.save(os.path.join(run_dir, "out.npy"), result)
-        return end_time - start_time
+
+        if self.cal_time:
+            return tvm_build.cal_run_time(gmod, has_input, input_data=self.input_data)
 
     @staticmethod
     def get_output(run_dir):
