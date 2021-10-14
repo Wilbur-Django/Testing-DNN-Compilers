@@ -33,8 +33,8 @@ class TVMRunner(Runner):
             os.path.join(run_dir, "in_out.txt"))
         result = tvm_build.run_graph_module(gmod, has_input, has_two_output, self.input_data)
         if has_two_output:
-            np.save(os.path.join(run_dir, "out.npy"), result[0])
-            np.save(os.path.join(run_dir, "edge.npy"), result[1])
+            np.save(os.path.join(run_dir, "edge.npy"), result[0])
+            np.save(os.path.join(run_dir, "out.npy"), result[1])
         else:
             np.save(os.path.join(run_dir, "out.npy"), result)
 

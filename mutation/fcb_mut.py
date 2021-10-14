@@ -61,8 +61,7 @@ class FCBMutator:
         for i in tqdm.tqdm(range(1, times + 1)):
             dead_edges, subs_new_edge, subs_add = \
                 self.mutate_once(model, all_edges)
-            if i % 10 == 1:
-                onnx.save(model, os.path.join(model_dir, "%d.onnx" % i))
+            onnx.save(model, os.path.join(model_dir, "%d.onnx" % i))
             # onnx.checker.check_model(model)
 
             save_mut_info(os.path.join(edge_dir, "%d.txt" % i),

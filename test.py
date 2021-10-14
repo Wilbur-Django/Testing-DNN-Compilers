@@ -2,13 +2,5 @@ import os
 
 import numpy as np
 
-from compile.xla.compile_manager import DefaultManager
-
-temp_dir = "/export/temp"
-
-a = np.load("/root/data/data.npy")
-
-m = DefaultManager()
-
-lib = np.ctypeslib.load_library('libmodel', temp_dir)
-print(m.predict(lib, a))
+a = np.array([1, 3.0, 5.0, 3]).reshape((2, 2))
+print(True in np.isnan(a))

@@ -60,6 +60,8 @@ class JudgeFail:
 
     def is_close(self, run_dir):
         model_output = self.runner.get_output(run_dir)
+        if True in np.isnan(self.fault_output):
+            return True in np.isnan(self.fault_output)
         max_abs_diff = np.max(np.abs(model_output - self.fault_output))
         print("Max absolute diff is %f" % max_abs_diff)
         return max_abs_diff < self.threshold
@@ -72,7 +74,12 @@ class DeltaDebugging:
 
     def remain_failed(self, delta_ids):
         print("Applying deltas:", delta_ids)
-        model = self.applier.apply(delta_ids)
+        # Quick fix. Do not rely on it!
+        try:
+            model = self.applier.apply(delta_ids)
+        except Exception:
+            print("There's a bug in applier.apply(), let's just skip it hhh~~~")
+            return False
         r = self.judge.remain_failed(model)
         if r:
             print("Model remain failed")
