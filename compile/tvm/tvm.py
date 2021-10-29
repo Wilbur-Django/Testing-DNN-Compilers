@@ -38,15 +38,17 @@ class TVMRunner(Runner):
 
         result = tvm_build.run_graph_module(self.gmod, input_dict, len(self.output_names))
 
+        self.save_result(result, run_dir)
 
+        if self.cal_time:
+            return tvm_build.cal_run_time(self.gmod, input_dict)
+
+    def save_result(self, result, run_dir):
         if len(self.output_names) > 1:
             np.save(os.path.join(run_dir, "edge.npy"), result[0])
             np.save(os.path.join(run_dir, "out.npy"), result[1])
         else:
             np.save(os.path.join(run_dir, "out.npy"), result[0])
-
-        if self.cal_time:
-            return tvm_build.cal_run_time(self.gmod, input_dict)
 
     @staticmethod
     def get_output(run_dir):

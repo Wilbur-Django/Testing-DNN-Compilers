@@ -47,7 +47,8 @@ def compilation_args():
     arg_parser = mutants_args()
 
     arg_parser.add_argument("--compile_list", nargs="+", default=[], type=int)
-    arg_parser.add_argument("--frac_compile", default=1, type=int)
+    arg_parser.add_argument("--retain_result", default=False, type=bool)
+    # arg_parser.add_argument("--frac_compile", default=1, type=int)
 
     return arg_parser
 
