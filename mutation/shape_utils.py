@@ -1,10 +1,6 @@
 import onnx
 
-
-def get_dim(t):
-    if not hasattr(t.type.tensor_type, 'shape'):
-        return None
-    return tuple([dim.dim_value for dim in t.type.tensor_type.shape.dim])
+from utils.onnx_utils import get_dim
 
 
 def get_type(t):

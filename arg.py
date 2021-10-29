@@ -5,7 +5,7 @@ import numpy as np
 
 def mutation_args():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--model_name", choices=['resnet18', 'vgg11', 'mobilenet'], default="resnet18", type=str)
+    arg_parser.add_argument("--model_name", choices=['resnet18', 'vgg11', 'mobilenet', 'inception'], default="resnet18", type=str)
 
     arg_parser.add_argument("--result_saving_dir", default="../mutants", type=str)
 
@@ -27,14 +27,14 @@ def mutants_args():
 
     arg_parser.add_argument("--mutants_dir", default="../mutants", type=str)
 
-    arg_parser.add_argument("--model_name", choices=['resnet18', 'vgg11', 'mobilenet'], default="resnet18", type=str)
+    arg_parser.add_argument("--model_name", choices=['resnet18', 'vgg11', 'mobilenet', 'inception'], default="resnet18", type=str)
     arg_parser.add_argument("--seed_number", default=1, type=int)
 
     arg_parser.add_argument("--mutation_method", choices=['universal', 'per_input', 'hybrid'],
                             default="hybrid", type=str)
 
-    arg_parser.add_argument("--compiler_name", choices=['glow', 'tvm', 'xla'], default="glow", type=str)
-    arg_parser.add_argument("--compiler_path", default="~/build_Release/bin/model-compiler", type=str)
+    arg_parser.add_argument("--compiler_name", choices=['glow', 'tvm', 'xla', 'glow-zoo'], default="glow", type=str)
+    arg_parser.add_argument("--compiler_path", default="~/glow-build/bin/model-compiler", type=str)
     # arg_parser.add_argument("--compiler_path", default="~/tensorflow", type=str)
 
     arg_parser.add_argument("--compile_record_dir", default="../compile_record", type=str)
@@ -57,6 +57,23 @@ def delta_debugging_args():
 
     arg_parser.add_argument("--err_model_id", type=int)
     arg_parser.add_argument("--debug_dir", default="../debug")
+
+    return arg_parser
+
+
+def cross_compile_args():
+    arg_parser = argparse.ArgumentParser()
+
+    arg_parser.add_argument("--model_zoo_dir", default="../model_zoo/classification/models", type=str)
+    arg_parser.add_argument("--result_saving_dir", default="../model_zoo/classification", type=str)
+
+    arg_parser.add_argument("--glow_compiler_path", default="../glow-build/bin/model-compiler", type=str)
+
+    arg_parser.add_argument("--compared_name", choices=['tvm', 'tensorflow'], default="tensorflow", type=str)
+
+    arg_parser.add_argument("--input_data_dir", default="../data/processed_imagenet", type=str)
+
+    arg_parser.add_argument("--seed_number", default=1, type=int)
 
     return arg_parser
 

@@ -4,14 +4,14 @@ import time
 import tvm
 from tvm import relay
 from tvm.contrib import graph_executor
-from mutation.shape_utils import get_dim
+from utils.onnx_utils import get_model_input, get_dim
 
 
-def build_model(onnx_model, build_dir):
-    shape_dict = {i.name: get_dim(i) for i in onnx_model.graph.input}
+def build_model(onnx_model, build_dir, opt_level=2):
+    shape_dict = {i.name: get_dim(i) for i in get_model_input(onnx_model)}
     mod, params = relay.frontend.from_onnx(onnx_model, shape_dict)
     target = tvm.target.Target("llvm", host="llvm")
-    with tvm.transform.PassContext(opt_level=2):
+    with tvm.transform.PassContext(opt_level=opt_level):
         lib = relay.build(mod, target=target, params=params)
     lib.export_library(os.path.join(build_dir, "compiled_lib.so"))
 
@@ -25,21 +25,18 @@ def load_lib(build_dir):
     return gmod
 
 
-def run_graph_module(gmod, has_input, has_two_output, input_data=None):
-    if has_input:
-        gmod.set_input("input", tvm.nd.array(input_data))
+def run_graph_module(gmod, input_dict: dict, num_outputs):
+    for name, value in input_dict.items():
+        gmod.set_input(name, tvm.nd.array(value))
     gmod.run()
-    tvm_output = gmod.get_output(0).numpy()
-    if has_two_output:
-        return tvm_output, gmod.get_output(1).numpy()
-    else:
-        return tvm_output
+    return [gmod.get_output(i).numpy() for i in range(num_outputs)]
 
-def cal_run_time(gmod, has_input, input_data=None, repeat_times=20):
+
+def cal_run_time(gmod, input_dict, repeat_times=20):
     st_time = time.time()
     for _ in range(repeat_times):
-        if has_input:
-            gmod.set_input("input", tvm.nd.array(input_data))
+        for name, value in input_dict.items():
+            gmod.set_input(name, tvm.nd.array(value))
         gmod.run()
     ed_time = time.time()
     return (ed_time - st_time) * 1000 / repeat_times

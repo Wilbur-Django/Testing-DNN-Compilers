@@ -9,7 +9,7 @@ from reduce.node_applier import make_node_applier
 from reduce.edges_diff import compare_onnx_compiler_edge_value
 from compile.make_runner import make_runner
 
-from utils.path_utils import clear_dir_content
+from utils.path_utils import clear_and_make_dir
 
 
 args = init_config(delta_debugging_args)
@@ -70,7 +70,7 @@ def make_judge(runner, save_dir):
 def graph_reduce():
     print("============================")
     print("Running graph reduce")
-    clear_dir_content(result_dir)
+    clear_and_make_dir(result_dir)
     mut_info_dir = os.path.join(args.mutants_dir, args.model_name, str(args.seed_number),
                                  args.mutation_method, "mut_info")
 

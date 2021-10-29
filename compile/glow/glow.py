@@ -11,10 +11,8 @@ import numpy as np
 
 
 class GlowRunner(Runner):
-    def __init__(self, compiler_path, data_path, mode, cal_time):
-        super().__init__(compiler_path, data_path, mode, cal_time)
-        self.set_input(data_path)
-
+    def __init__(self, compiler_path, mode, cal_time):
+        super().__init__(compiler_path, mode, cal_time)
         cur_dir = os.path.dirname(__file__)
         if mode == 'default':
             self.run_cpp_path = os.path.join(cur_dir, "run.cpp")
@@ -32,17 +30,11 @@ class GlowRunner(Runner):
         else:
             self.data_path = np_to_bin(data_path)
 
-    def run(self, run_dir):
-        last_wd = os.getcwd()
-        os.chdir(run_dir)
-        if self.cal_time:
-            r = execute_cmd("./main", self.data_path, "-t")
-        else:
-            r = execute_cmd("./main", self.data_path)
-        os.chdir(last_wd)
+    def load_lib(self, build_dir):
+        pass
 
-        if r:
-            raise RuntimeError(str(r))
+    def run(self, run_dir):
+        glow_run(run_dir, self.data_path, self.cal_time)
 
         if self.cal_time:
             return self.get_run_time(run_dir)
@@ -57,13 +49,9 @@ class GlowRunner(Runner):
         gcc_compile(build_dir)
 
     def compile(self, model_path, build_dir):
-        r = glow_compile(self.compiler_path, model_path, build_dir)
-        if r:
-            raise GlowError(model_path, r)
+        glow_compile(self.compiler_path, model_path, build_dir)
         self.form_cpp(build_dir, self.run_cpp_path)
-        r = gcc_compile(build_dir)
-        if r:
-            raise GlowError(model_path, r)
+        gcc_compile(build_dir)
 
     @staticmethod
     def get_output(run_dir):
@@ -75,8 +63,10 @@ class GlowRunner(Runner):
 
 
 def glow_compile(compiler_path, model_path, build_dir):
-    return execute_cmd(compiler_path, "-backend=CPU", f"-model={model_path}",
-                       f"-emit-bundle={build_dir}", "-network-name=model")
+    r = execute_cmd(compiler_path, "-backend=CPU", f"-model={model_path}",
+                    f"-emit-bundle={build_dir}", "-network-name=model")
+    if r:
+        raise GlowError(model_path, r)
 
 
 def dump_ir(compiler_path, model_path, build_dir, dump_file):
@@ -92,7 +82,22 @@ def gcc_compile(build_dir):
     os.system("g++ -c run.cpp")
     r = execute_cmd("g++", "run.o", "model.o", "-o", "main", "-no-pie")
     os.chdir(last_wd)
-    return r
+    if r:
+        raise GlowError(build_dir, r)
+
+
+def glow_run(run_dir, data_path, cal_time=False):
+    data_path = os.path.abspath(data_path)
+    last_wd = os.getcwd()
+    os.chdir(run_dir)
+    if cal_time:
+        r = execute_cmd("./main", data_path, "-t")
+    else:
+        r = execute_cmd("./main", data_path)
+    os.chdir(last_wd)
+
+    if r:
+        raise RuntimeError(str(r))
 
 
 def trivial_prep_run_cpp(build_dir, run_cpp_path):
@@ -105,8 +110,9 @@ def get_run_time(time_bin_path):
 
 
 def np_to_bin(np_data_path):
+    file_name = os.path.splitext(os.path.basename(np_data_path))[0]
     bin_data_path = os.path.join(
-        os.path.dirname(os.path.abspath(np_data_path)), "data.bin")
+        os.path.dirname(os.path.abspath(np_data_path)), "%s.bin" % file_name)
     if not os.path.exists(bin_data_path):
         data = np.load(np_data_path)
         data.flatten().tofile(bin_data_path)

@@ -2,7 +2,7 @@ import datetime
 import os
 import shutil
 
-def clear_dir_content(dir_name):
+def clear_and_make_dir(dir_name):
     if os.path.exists(dir_name):
         shutil.rmtree(dir_name)
     os.makedirs(dir_name)

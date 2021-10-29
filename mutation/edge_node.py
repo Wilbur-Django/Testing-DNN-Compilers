@@ -1,6 +1,6 @@
 import utils.onnx_utils
 from mutation import mutate_utils
-from mutation.shape_utils import get_dim
+from utils.onnx_utils import get_dim
 from mutation.mutate_utils import make_value_info
 
 

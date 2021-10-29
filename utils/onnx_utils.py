@@ -28,10 +28,19 @@ def get_max_edge_idx(graph):
 
 def onnx_run(input_data, model_path):
     sess = rt.InferenceSession(model_path)
-    input_name = sess.get_inputs()[0].name
+    if sess.get_inputs():
+        input_name = sess.get_inputs()[0].name
+        input_dict = {input_name: input_data}
+    else:
+        input_dict = {}
     output_name = [o.name for o in sess.get_outputs()]
-    out = sess.run(output_name, {input_name: input_data})
+    out = sess.run(output_name, input_dict)
     return out
+
+
+def get_model_input(model):
+    init_names = set(i.name for i in model.graph.initializer)
+    return [i for i in model.graph.input if i.name not in init_names]
 
 
 def print_onnx_graph(model):
@@ -40,3 +49,9 @@ def print_onnx_graph(model):
 
 def name_obj_dict(objs):
     return {obj.name: obj for obj in objs}
+
+
+def get_dim(t):
+    if not hasattr(t.type.tensor_type, 'shape'):
+        return None
+    return tuple([dim.dim_value for dim in t.type.tensor_type.shape.dim])

@@ -15,10 +15,11 @@ from compile.xla.compile_manager import select_manager
 
 
 class XlaRunner(Runner):
-    def __init__(self, compiler_path, data_path, mode, cal_time):
-        super().__init__(compiler_path, data_path, mode, cal_time)
+    def __init__(self, compiler_path, mode, cal_time):
+        super().__init__(compiler_path, mode, cal_time)
         self.input_data = None
-        self.set_input(data_path)
+        self.lib = None
+        self.manager = None
 
         file_dir = os.path.dirname(__file__)
         self.build_graph_file = os.path.join(file_dir, "build_graph.txt")
@@ -27,19 +28,20 @@ class XlaRunner(Runner):
     def set_input(self, data_file):
         self.input_data = np.load(data_file)
 
+    def get_manager(self):
+        return select_manager(self.mode, self.input_name is None, len(self.output_names) == 2)
+
     def compile(self, model_path, build_dir):
         onnx_model = onnx.load(model_path)
         onnx2tf(onnx_model, self.compiler_path)
 
-        write_in_out_info(os.path.join(build_dir, "in_out.txt"), onnx_model)
-        manager = select_manager(self.mode, os.path.join(build_dir, "in_out.txt"))
+        manager = self.get_manager()
         manager.before_compile(self.compiler_path)
 
         last_wd = os.getcwd()
         os.chdir(self.compiler_path)
 
         shutil.copyfile(self.build_graph_file, "BUILD")
-        # TODO: only show error and warning
         r = execute_cmd("bazel", "build", "@org_tensorflow//:graph")
         if r:
             raise XlaError(model_path, r)
@@ -52,12 +54,14 @@ class XlaRunner(Runner):
         os.chdir(last_wd)
 
     def run(self, run_dir):
-        lib = get_lib(os.path.join(self.compiler_path, "bazel-bin"))
-        manager = select_manager(self.mode, os.path.join(run_dir, "in_out.txt"))
-        output = manager.predict(lib, self.input_data)
+        output = self.manager.predict(self.lib, self.input_data)
         np.save(os.path.join(run_dir, "out.npy"), output)
         if self.cal_time:
-            return self.cal_run_time(manager, lib)
+            return self.cal_run_time(self.manager, self.lib)
+
+    def load_lib(self, build_dir):
+        self.lib = get_lib(os.path.join(self.compiler_path, "bazel-bin"))
+        self.manager = self.get_manager()
 
     def cal_run_time(self, manager, lib, repeat_times=100):
         start = time.time()

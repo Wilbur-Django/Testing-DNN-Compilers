@@ -3,13 +3,10 @@ import shutil
 
 import numpy as np
 
-from compile.compile_utils import read_in_out_info
 
-
-def select_manager(mode, in_out_info_file):
+def select_manager(mode, has_input, has_two_output):
     if mode == "default":
         return DefaultManager()
-    has_input, has_two_output = read_in_out_info(in_out_info_file)
     if has_input and not has_two_output:
         return DefaultManager()
     elif not has_input and not has_two_output:

@@ -14,6 +14,7 @@ class JudgeFail:
         self.id = 0
 
         self.runner.set_input(input_file)
+        self.input_file = input_file
 
         self.check_failed = self.check_compile_failed if compile_fail else self.check_run_failed
 
@@ -27,7 +28,9 @@ class JudgeFail:
         self.runner.compile(model_path, build_dir)
 
     def run(self, run_dir):
-        # self.runner.set_input(self.input_file)
+        if hasattr(self.runner, "load_lib"):
+            self.runner.load_lib(run_dir)
+        self.runner.set_input(self.input_file)
         self.runner.run(run_dir)
 
     def check_compile_failed(self, model_path, build_dir):
@@ -61,7 +64,7 @@ class JudgeFail:
     def is_close(self, run_dir):
         model_output = self.runner.get_output(run_dir)
         if True in np.isnan(self.fault_output):
-            return True in np.isnan(self.fault_output)
+            return True in np.isnan(model_output)
         max_abs_diff = np.max(np.abs(model_output - self.fault_output))
         print("Max absolute diff is %f" % max_abs_diff)
         return max_abs_diff < self.threshold

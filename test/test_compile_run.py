@@ -25,7 +25,7 @@ from compile.make_runner import make_runner
 runner = make_runner('glow', "/export/d2/dwxiao/build_Release/bin/model-compiler", '../data/data.npy', 'default', False)
 
 # runner.compile("/export/d2/dwxiao/results/resnet18/1/hybrid/mutants/models/334.onnx", "../temp")
-runner.run("../temp")
+runner.run("../temp", )
 
 # print(os.getcwd())
 # os.chdir("../temp")

@@ -19,7 +19,6 @@ def compare_onnx_compiler_edge_value(model, runner: compile.runner.Runner,
     model_path, build_dir = prepare_run_dir(run_dir)
 
     input_data = np.load(data_path)
-    runner.set_input(data_path)
 
     edge_diff = []
 
@@ -33,7 +32,7 @@ def compare_onnx_compiler_edge_value(model, runner: compile.runner.Runner,
 
         try:
             runner_edge_value, runner_output_value = runner.compile_run(
-                model_path, build_dir, view_edge=True)
+                model_path, build_dir, data_path, view_edge=True)
         except Exception:
             model.graph.output.remove(edge)
             continue

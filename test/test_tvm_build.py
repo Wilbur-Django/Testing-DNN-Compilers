@@ -21,7 +21,7 @@ def test_tvm_build():
 
     runner = make_runner("tvm", None, os.path.join(root_path, "data", "data.npy"), "default", False)
     runner.compile(new_model_path, compile_path)
-    runner.run(compile_path)
+    runner.run(compile_path, )
 
     print(runner.get_edge_value(compile_path))
     print()

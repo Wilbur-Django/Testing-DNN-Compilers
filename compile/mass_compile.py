@@ -7,6 +7,7 @@ from compile.output_diff import array_diff, write_output_diff
 from compile.make_runner import make_runner
 from compile.time_utils import time_iterator
 from compile.compile_err import CompilationError
+from utils.path_utils import clear_and_make_dir
 
 
 class MetaCompile:
@@ -64,26 +65,22 @@ class MetaCompile:
 
         build_dir = self.build_root_dir
 
-        self.runner.set_input(input_file)
-
         model_names = self.get_compile_list()
 
         it = time_iterator(model_names, [compile_time_file, run_time_file])
 
         for model_name in tqdm.tqdm(it):
             model_path = os.path.join(self.onnx_model_dir, "%s.onnx" % model_name)
-            if os.path.exists(build_dir):
-                shutil.rmtree(build_dir)
-            os.mkdir(build_dir)
+            clear_and_make_dir(build_dir)
             try:
-                it.cal_time(0, lambda: self.runner.compile(model_path, build_dir))
+                it.cal_time(0, lambda: self.runner.build(model_path, build_dir))
             except CompilationError as e:
                 self.handle_compilation_error(e, model_name)
                 shutil.rmtree(build_dir)
                 continue
 
             try:
-                run_time = self.runner.run(build_dir)
+                run_time = self.runner.run_with_input(build_dir, input_file)
             except RuntimeError as e:
                 with open(self.err_summary_file, 'a') as f:
                     f.write(f"{build_dir} $$$ {str(e)}\n")
@@ -116,7 +113,7 @@ def compiler_run(compiler_name, compiler_path, onnx_model_dir,
                  frac_compile, compile_list):
     os.makedirs(time_record_dir, exist_ok=True)
     os.makedirs(build_dir, exist_ok=True)
-    runner = make_runner(compiler_name, compiler_path, data_path, 'default', True)
+    runner = make_runner(compiler_name, compiler_path, 'default', True)
 
     meta_compiler = MetaCompile(runner, onnx_model_dir, build_dir,
                                 diff_file_path, time_record_dir,
