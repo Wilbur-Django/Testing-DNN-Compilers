@@ -15,6 +15,9 @@ def make_runner(compiler_name, compiler_path, mode, cal_time):
     elif compiler_name == 'tensorflow':
         from compile.tf_runner.tf_runner import TfRunner
         return TfRunner(compiler_path, mode, cal_time)
+    elif compiler_name == 'onnx':
+        from compile.onnx_runner.onnx_runner import OnnxRunner
+        return OnnxRunner(compiler_path, mode, cal_time)
     elif compiler_name == 'glow-zoo':
         from cross_compile.glow_compile import GlowModelZooCompiler
         return GlowModelZooCompiler(compiler_path)

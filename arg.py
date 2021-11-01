@@ -33,7 +33,7 @@ def mutants_args():
     arg_parser.add_argument("--mutation_method", choices=['universal', 'per_input', 'hybrid'],
                             default="hybrid", type=str)
 
-    arg_parser.add_argument("--compiler_name", choices=['glow', 'tvm', 'xla', 'glow-zoo'], default="glow", type=str)
+    arg_parser.add_argument("--compiler_name", choices=['glow', 'tvm', 'xla', 'glow-zoo', 'onnx'], default="glow", type=str)
     arg_parser.add_argument("--compiler_path", default="~/glow-build/bin/model-compiler", type=str)
     # arg_parser.add_argument("--compiler_path", default="~/tensorflow", type=str)
 
