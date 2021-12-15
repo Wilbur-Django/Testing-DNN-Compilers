@@ -114,13 +114,12 @@ class InputDependentGuard:
 
 
 class HybridGuard:
-    def __init__(self, generator: NodeChainGen, seed_model, tmp_save_path, input_data_path):
+    def __init__(self, generator: NodeChainGen, seed_model,
+                 temp_model_save_path, input_data_path):
         self.uni_guard = UniversalGuard(generator, seed_model)
 
-        os.makedirs(tmp_save_path, exist_ok=True)
         self.dep_guard = InputDependentGuard(
-            generator, os.path.join(tmp_save_path, 'tmp.onnx'),
-            np.load(input_data_path))
+            generator, temp_model_save_path, np.load(input_data_path))
 
     def gen_guard(self, model, *guard_input_edges):
         if random.randint(0, 1):
@@ -132,16 +131,16 @@ class HybridGuard:
 
 class GuardDispatcher:
     def __init__(self, generator: NodeChainGen, mode, seed_model=None,
-                 tmp_save_path=None, input_data_path=None):
+                 temp_model_save_path=None, input_data_path=None):
         if mode == 'universal':
             self.guard = UniversalGuard(generator, seed_model)
         elif mode == 'per_input':
-            os.makedirs(tmp_save_path, exist_ok=True)
             self.guard = InputDependentGuard(
-                generator, os.path.join(tmp_save_path, 'tmp.onnx'),
+                generator, temp_model_save_path,
                 np.load(input_data_path))
         elif mode == 'hybrid':
-            self.guard = HybridGuard(generator, seed_model, tmp_save_path, input_data_path)
+            self.guard = HybridGuard(
+                generator, seed_model, temp_model_save_path, input_data_path)
         else:
             raise Exception("The mode should be in 'universal', 'per_input', or 'hybrid'.")
 
@@ -149,8 +148,10 @@ class GuardDispatcher:
 
     def gen_guard(self, model, *input_guard_edges):
         if self.mode == 'universal':
+            random.randint(0, 1)  # for compatibility with hybrid
             guard_edges = self.guard.gen_guard(input_guard_edges[0], input_guard_edges[1])
         elif self.mode == 'per_input':
+            random.randint(0, 1)  # for compatibility with hybrid
             guard_edges = self.guard.gen_guard(model, input_guard_edges[0])
         else:
             guard_edges = self.guard.gen_guard(model, *input_guard_edges)

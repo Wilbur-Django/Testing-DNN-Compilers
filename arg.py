@@ -17,6 +17,8 @@ def mutation_args():
 
     arg_parser.add_argument("--mutation_times", default=1000, type=int)
 
+    arg_parser.add_argument("--save_freq", default=10, type=int)
+
     arg_parser.add_argument("--seed_number", default=1, type=int)
 
     return arg_parser

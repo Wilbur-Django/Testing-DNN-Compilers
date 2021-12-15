@@ -7,6 +7,7 @@ import pickle
 import onnx
 from onnx import shape_inference
 
+from utils.path_utils import remove_file, clear_and_make_dir
 from mutation import edge_node, mutate_utils
 from mutation.node_gen import make_node_chain_generator
 from mutation.guard_gen import GuardDispatcher
@@ -37,22 +38,26 @@ def read_mut_info(file):
 
 
 class FCBMutator:
-    def __init__(self, seed_model, mode, tmp_save_path=None, input_data_path=None):
+    def __init__(self, seed_model, mode, saving_dir, input_data_path):
         self.gen = make_node_chain_generator(seed_model)
 
         self.seed_model = shape_inference.infer_shapes(seed_model)
 
         self.dead_gen = DeadGenerator(self.gen)
 
-        self.guard_gen = GuardDispatcher(self.gen, mode, self.seed_model,
-                                         tmp_save_path, input_data_path)
+        self.temp_model_save_path = os.path.join(saving_dir, "tmp.onnx")
+        clear_and_make_dir(saving_dir)
+        self.root_save_dir = saving_dir
 
-    def mutate(self, times, root_save_dir):
+        self.guard_gen = GuardDispatcher(self.gen, mode, self.seed_model,
+                                         self.temp_model_save_path, input_data_path)
+
+    def mutate(self, times, saving_frequency):
         model = copy.copy(self.seed_model)
         all_edges = edge_node.convert_onnx_to_edge(model.graph)
 
-        model_dir = os.path.join(root_save_dir, "models")
-        edge_dir = os.path.join(root_save_dir, "mut_info")
+        model_dir = os.path.join(self.root_save_dir, "models")
+        edge_dir = os.path.join(self.root_save_dir, "mut_info")
         os.makedirs(model_dir, exist_ok=True)
         os.makedirs(edge_dir, exist_ok=True)
 
@@ -61,11 +66,14 @@ class FCBMutator:
         for i in tqdm.tqdm(range(1, times + 1)):
             dead_edges, subs_new_edge, subs_add = \
                 self.mutate_once(model, all_edges)
-            onnx.save(model, os.path.join(model_dir, "%d.onnx" % i))
+            if i % saving_frequency == 0:
+                onnx.save(model, os.path.join(model_dir, "%d.onnx" % i))
             # onnx.checker.check_model(model)
 
             save_mut_info(os.path.join(edge_dir, "%d.txt" % i),
                           dead_edges, subs_new_edge, subs_add)
+
+        remove_file(self.temp_model_save_path)
 
     def mutate_once(self, model, all_edges):
         subs_place, dep_places = \

@@ -8,6 +8,11 @@ def clear_and_make_dir(dir_name):
     os.makedirs(dir_name)
 
 
+def remove_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+
 def path_append_timestamp(save_dir):
     sub_dir_name = datetime.datetime.now().strftime("%m%d_%H%M%S")
     save_path = os.path.join(os.path.curdir, save_dir, sub_dir_name)
