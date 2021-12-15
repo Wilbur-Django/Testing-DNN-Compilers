@@ -110,7 +110,7 @@ class MetaCompile:
         failed = self.run(build_dir, input_file)
         if failed:
             return True
-        iterator.set_time(self.runner.get_run_time(build_dir))
+        iterator.set_time(self.runner.get_run_time())
         return False
 
     def cal_compile_time(self, iterator, model_path, build_dir):
