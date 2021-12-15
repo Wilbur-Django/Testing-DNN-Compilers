@@ -143,7 +143,7 @@ def get_compile_list(compile_list, onnx_model_dir):
     if not compile_list:
         model_names = [os.path.splitext(file_name)[0]
                        for file_name in os.listdir(onnx_model_dir)
-                       if file_name != 'seed.onnx']
+                       if file_name != 'seed.onnx' and file_name[-5:] == ".onnx"]
         model_names.sort(key=lambda x: int(x))
         # model_names = model_names[::self.frac_compile]
         model_names.append('seed')
@@ -151,7 +151,7 @@ def get_compile_list(compile_list, onnx_model_dir):
         model_names = [str(name) for name in compile_list]
         if 'seed' not in model_names:
             model_names.append('seed')
-    return [os.path.join(onnx_model_dir, n) for n in model_names]
+    return [os.path.join(onnx_model_dir, "%s.onnx" % n) for n in model_names]
 
 
 def get_run_multiple_list(run_list, input_dir):
