@@ -16,3 +16,13 @@ def path_append_timestamp(save_dir):
 
 def norm_user_path(user_path):
     return os.path.expanduser(user_path)
+
+def file_name_no_ext(file_path):
+    return os.path.splitext(os.path.basename(file_path))[0]
+
+def get_ext(file_path):
+    return os.path.splitext(os.path.basename(file_path))[1]
+
+def change_ext(file_path, new_ext):
+    file_name = file_name_no_ext(file_path)
+    return os.path.join(os.path.dirname(os.path.abspath(file_path)), f"{file_name}.{new_ext}")

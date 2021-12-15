@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 GLOW_MEM_ALIGN(MODEL_MEM_ALIGN)
 uint8_t constantWeight[MODEL_CONSTANT_MEM_SIZE];
@@ -20,6 +21,7 @@ uint8_t *inputAddr = GLOW_GET_ADDR(mutableWeight, MODEL_input);
 
 /// Bundle output data absolute address.
 uint8_t *outputAddr = GLOW_GET_ADDR(mutableWeight, MODEL_output);
+
 
 void initConstantWeights(const char *weightsFileName, uint8_t * addr) {
   // Load weights.
@@ -77,10 +79,41 @@ void run_model() {
     }
 }
 
+double cal_time(int run_times) {
+  int i;
+  struct timeval start, end;
+  run_model();
+  gettimeofday(&start, NULL);
+  for (i = 0; i < run_times; i++)
+    run_model();
+  gettimeofday(&end, NULL);
+  long timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;
+  return ((double) timeuse / (double) run_times) / 1000.0;
+}
+
+void writeTime(double usedTime, const char* timeFileName) {
+  FILE *timeFile = fopen(timeFileName, "w");
+  if (!timeFile) {
+    fprintf(stderr, "Could not open the time file: %s\n", timeFileName);
+    exit(1);
+  }
+
+  int result = fprintf(timeFile, "%f\n", usedTime);
+  fclose(timeFile);
+}
+
 int main(int argc, char ** argv) {
     initConstantWeights("model.weights.bin", constantWeight);
     initConstantWeights(argv[1], inputAddr);
-    run_model();
-//    printArray(outputAddr, 1000);
-    writeOutput("out.bin", outputAddr, 4000);
+
+    if (argc > 2) {
+        double runTime = cal_time(5);
+        writeTime(runTime, "time.bin");
+    }
+    else {
+        run_model();
+    }
+
+    printArray(outputAddr, 40);
+    writeOutput("out.bin", outputAddr, 160);
 }

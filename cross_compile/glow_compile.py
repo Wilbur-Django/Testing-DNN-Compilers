@@ -6,7 +6,7 @@ import onnx
 from compile.make_runner import make_runner
 
 from compile.glow.glow import glow_run
-from compile.glow.glow import glow_compile, gcc_compile, np_to_bin
+from compile.glow.glow import glow_compile, gcc_compile
 from compile.glow.compile_manager import ModelZooManager
 
 from compile.glow.form_cpp import get_inout_info

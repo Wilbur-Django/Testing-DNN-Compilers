@@ -48,6 +48,7 @@ def compilation_args():
 
     arg_parser.add_argument("--compile_list", nargs="+", default=[], type=int)
     arg_parser.add_argument("--retain_result", default=False, type=bool)
+    arg_parser.add_argument("--mode", default="compile_run", type=str)
     # arg_parser.add_argument("--frac_compile", default=1, type=int)
 
     return arg_parser
@@ -78,6 +79,23 @@ def cross_compile_args():
 
     return arg_parser
 
+
+def multiple_input_args():
+    arg_parser = argparse.ArgumentParser()
+
+    arg_parser.add_argument("--model_path", default="../model_zoo/classification/batch_fixed_models/vgg16-7.onnx", type=str)
+    arg_parser.add_argument("--result_saving_dir", default="../time_record")
+
+    arg_parser.add_argument("--input_dir", default="../data/processed_imagenet", type=str)
+    arg_parser.add_argument("--run_list", nargs="+", default=[1], type=int)
+
+    arg_parser.add_argument("--compiler_name", choices=['glow', 'tvm', 'xla', 'onnx'], default="glow",
+                            type=str)
+    arg_parser.add_argument("--compiler_path", default="~/glow-build/bin/model-compiler", type=str)
+
+    arg_parser.add_argument("--seed_number", default=1, type=int)
+
+    return arg_parser
 
 def init_config(arg_init):
     arg_parser = arg_init()

@@ -2,8 +2,10 @@ import os
 import shutil
 import subprocess
 
+from utils.path_utils import change_ext
 from compile.glow.glow_err import GlowError
 from compile.glow.form_cpp import form_edge_diff_cpp
+from compile.glow.compile_manager import select_manager
 from compile.runner import Runner
 from compile.compile_utils import execute_cmd
 
@@ -13,22 +15,35 @@ import numpy as np
 class GlowRunner(Runner):
     def __init__(self, compiler_path, mode, cal_time):
         super().__init__(compiler_path, mode, cal_time)
-        cur_dir = os.path.dirname(__file__)
-        if mode == 'default':
-            self.run_cpp_path = os.path.join(cur_dir, "run.cpp")
-            self.form_cpp = trivial_prep_run_cpp
-        elif mode == 'node reduce':
-            self.run_cpp_path = os.path.join(cur_dir, "node_reduce_run.cpp")
-            self.form_cpp = trivial_prep_run_cpp
-        else:
-            self.run_cpp_path = os.path.join(cur_dir, "edge_view.cpp")
-            self.form_cpp = form_edge_diff_cpp
+        self.manager = select_manager(mode)
+        # if mode == 'default':
+        #     self.run_cpp_path = os.path.join(cur_dir, "run.cpp")
+        #     self.form_cpp = trivial_prep_run_cpp
+        # elif mode == 'node reduce':
+        #     self.run_cpp_path = os.path.join(cur_dir, "node_reduce_run.cpp")
+        #     self.form_cpp = trivial_prep_run_cpp
+        # else:
+        #     self.run_cpp_path = os.path.join(cur_dir, "edge_view.cpp")
+        #     self.form_cpp = form_edge_diff_cpp
 
     def set_input(self, data_path):
-        if data_path.endswith(".bin"):
-            self.data_path = data_path
+        # if data_path.endswith(".bin"):
+        #     self.data_path = data_path
+        # else:
+        #     self.data_path = np_to_bin(data_path)
+        if self.channel_last:
+            if data_path.endswith(".npy"):
+                input_data = np.load(data_path)
+            else:
+                input_data = np.fromfile(data_path, dtype=np.float32)
+            input_data = np.transpose(input_data, (0, 2, 3, 1))
+            self.data_path = change_ext(data_path, 'bin')
+            input_data.flatten().tofile(self.data_path)
         else:
-            self.data_path = np_to_bin(data_path)
+            if data_path.endswith(".npy"):
+                self.data_path = np_to_bin(data_path)
+            else:
+                self.data_path = data_path
 
     def load_lib(self, build_dir):
         pass
@@ -37,20 +52,18 @@ class GlowRunner(Runner):
         glow_run(run_dir, self.data_path, self.cal_time)
 
         if self.cal_time:
-            return self.get_run_time(run_dir)
-
-    @staticmethod
-    def get_run_time(run_dir):
-        return get_run_time(os.path.join(run_dir, "time.bin"))
+            return get_run_time(os.path.join(run_dir, "time.bin"))
 
     def debug_compile(self, model_path, build_dir, debug_info_file):
         dump_ir(self.compiler_path, model_path, build_dir, debug_info_file)
-        self.form_cpp(build_dir, self.run_cpp_path)
+        # self.form_cpp(build_dir, self.run_cpp_path)
+        self.manager.form_run_cpp(build_dir)
         gcc_compile(build_dir)
 
     def compile(self, model_path, build_dir):
         glow_compile(self.compiler_path, model_path, build_dir)
-        self.form_cpp(build_dir, self.run_cpp_path)
+        # self.form_cpp(build_dir, self.run_cpp_path)
+        self.manager.form_run_cpp(build_dir)
         gcc_compile(build_dir)
 
     @staticmethod
@@ -110,10 +123,7 @@ def get_run_time(time_bin_path):
 
 
 def np_to_bin(np_data_path):
-    file_name = os.path.splitext(os.path.basename(np_data_path))[0]
-    bin_data_path = os.path.join(
-        os.path.dirname(os.path.abspath(np_data_path)), "%s.bin" % file_name)
-    if not os.path.exists(bin_data_path):
-        data = np.load(np_data_path)
-        data.flatten().tofile(bin_data_path)
+    bin_data_path = change_ext(np_data_path, "bin")
+    data = np.load(np_data_path)
+    data.flatten().tofile(bin_data_path)
     return bin_data_path

@@ -1,6 +1,7 @@
 import time
-import os
 import random
+
+from utils.path_utils import file_name_no_ext
 
 
 class TimeIterator:
@@ -11,8 +12,9 @@ class TimeIterator:
         self.time_list = [[-1000 for _ in range(len(time_recording_files))]
                           for _ in range(len(self.gen_order))]
         self.time_rec_files = time_recording_files
+
         self.cur_iter = -1
-        self.st_time = None
+        self.cur_file_idx = -1
 
     def __len__(self):
         return len(self.gen_order)
@@ -24,50 +26,41 @@ class TimeIterator:
         if self.cur_iter >= len(self.gen_order) - 1:
             for i in range(len(self.time_rec_files)):
                 self.write_time(i)
-            # plot_time(self.time_rec_file)
             raise StopIteration
         else:
             self.cur_iter += 1
+            self.cur_file_idx = -1
             print("==================")
             print("Compiling (running):",
                   self.gen_list[self.gen_order[self.cur_iter]])
             return self.gen_list[self.gen_order[self.cur_iter]]
 
-    def set_time(self, file_idx, run_time):
-        self.time_list[self.gen_order[self.cur_iter]][file_idx] = run_time
+    def get_cur_item(self):
+        return self.gen_list[self.gen_order[self.cur_iter]]
 
-    def cal_time(self, file_idx, lambda_func, repeat_times=1):
+    def set_time(self, run_time):
+        self.cur_file_idx += 1
+        self.time_list[self.gen_order[self.cur_iter]][self.cur_file_idx] = run_time
+
+    def cal_time(self, lambda_func, repeat_times=1):
         st_time = time.time()
         r = lambda_func()
         for i in range(repeat_times - 1):
             lambda_func()
         elapsed_time = time.time() - st_time
-        self.set_time(file_idx, elapsed_time / repeat_times)
+        self.set_time(elapsed_time / repeat_times)
         return r
 
     def write_time(self, file_idx):
         with open(self.time_rec_files[file_idx], 'w') as f:
-            sorted_list = sort_timing(self.gen_list, self.time_list)
+            sorted_list = sort_timing([file_name_no_ext(i) for i in self.gen_list],
+                                      self.time_list)
             f.write("\n".join([f"{name}$$${t[file_idx]}"
                                for name, t in sorted_list if t[file_idx] != -1000]))
 
 
 def time_iterator(iterator, time_files):
     return TimeIterator(iterator, time_files)
-
-
-def plot_time(time_file):
-    from matplotlib import pyplot as plt
-    # Cannot plot on X shell
-    with open(time_file, 'r') as f:
-        name_time_list = [line.strip().split("$$$") for line in f.readlines()]
-    name_time_list = [(int(n), float(t)) if n != 'seed' else (0, float(t))
-                      for n, t in name_time_list]
-    plt.plot(*zip(*name_time_list))
-
-    save_name = "%s.png" % (os.path.splitext(os.path.basename(time_file))[1])
-    save_path = os.path.join(os.path.dirname(time_file), save_name)
-    plt.savefig(save_path)
 
 
 def convert_seconds_to_hms(seconds):

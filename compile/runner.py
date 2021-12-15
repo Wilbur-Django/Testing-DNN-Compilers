@@ -16,6 +16,8 @@ class Runner:
         self.output_names = []
         self.channel_last = False
 
+        self.run_return = None
+
     def set_input(self, data_path):
         self.data_path = os.path.abspath(data_path)
 
@@ -52,16 +54,21 @@ class Runner:
         self.save_inout_info(model, build_dir)
 
     def run_with_input(self, run_dir, data_path):
+        self.set_input(data_path)
+        self.run_return = self.run(run_dir)
+
+    def prepare_run(self, run_dir):
         self.get_inout_info(run_dir)
         self.load_lib(run_dir)
-        self.set_input(data_path)
-        return self.run(run_dir)
 
     def compile(self, model_path, build_dir):
         raise NotImplementedError()
 
     def run(self, run_dir):
         raise NotImplementedError()
+
+    def get_run_time(self):
+        return self.run_return
 
     @staticmethod
     def get_output(run_dir):

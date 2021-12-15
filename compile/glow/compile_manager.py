@@ -45,7 +45,7 @@ class ModelZooManager(CompileManager):
 
         with open(cls.run_file, 'r') as f:
             lines = [line.replace("MODEL_input", in_macro).replace("MODEL_output", out_macro)
-                         .replace("4000", str(out_size))
+                         .replace("160", str(out_size))
                      for line in f.readlines()]
 
         with open(new_run_file, 'w') as f:
