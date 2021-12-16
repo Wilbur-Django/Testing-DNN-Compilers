@@ -45,7 +45,7 @@ if diff_line:
     compile_fail = False
     fault_output = runner.compile_run(
         os.path.join(mutant_models_dir, "%d.onnx" % args.err_model_id),
-        temp_dir, view_edge=False
+        temp_dir, args.input_data_path, view_edge=False
     )
     ori_abs_diff = float(diff_line[0].split("$$$")[1])
     print(f"Original abs diff is {ori_abs_diff}")
