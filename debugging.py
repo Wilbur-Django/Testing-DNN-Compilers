@@ -35,7 +35,7 @@ temp_dir = os.path.join(result_dir, "temp")
 
 compile_fail, fault_output, ori_abs_diff, err_code = False, None, None, None
 os.makedirs(temp_dir, exist_ok=True)
-runner = make_runner(args.compiler_name, args.compiler_path, args.input_data_path,
+runner = make_runner(args.compiler_name, args.compiler_path,
                      'default', False)
 output_diff_file = os.path.join(compiler_output_dir, "output_diff.txt")
 with open(output_diff_file, 'r') as f:
@@ -74,7 +74,7 @@ def graph_reduce():
     mut_info_dir = os.path.join(args.mutants_dir, args.model_name, str(args.seed_number),
                                  args.mutation_method, "mut_info")
 
-    runner = make_runner(args.compiler_name, args.compiler_path, args.input_data_path,
+    runner = make_runner(args.compiler_name, args.compiler_path,
                          'default', False)
 
     judge = make_judge(runner, result_dir)
@@ -91,7 +91,7 @@ def node_reduce():
 
     applier = make_node_applier(reduced_model_path, args.input_data_path, temp_dir)
 
-    runner = make_runner(args.compiler_name, args.compiler_path, args.input_data_path,
+    runner = make_runner(args.compiler_name, args.compiler_path,
                          'node reduce', False)
 
     judge = make_judge(runner, result_dir)
@@ -115,7 +115,7 @@ def debug_compile(runner, model_path, build_dir, debug_output_file):
 def view_edges():
     print("============================")
     print("Running edge viewing")
-    runner = make_runner(args.compiler_name, args.compiler_path, args.input_data_path,
+    runner = make_runner(args.compiler_name, args.compiler_path,
                          'edge view', False)
     model = onnx.load(reduced_model_path)
     compare_onnx_compiler_edge_value(model, runner, fault_output,
