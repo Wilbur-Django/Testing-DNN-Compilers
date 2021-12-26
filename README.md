@@ -2,6 +2,7 @@
 This is the artifact for reproducing 
 the results in the paper 
 "Metamorphic Testing of Deep Learning Compilers".
+
 Interested readers may follow the steps below to 
 run mutation, compilation, and 
 delta-debugging to reproduce the results in
@@ -24,6 +25,7 @@ tqdm
 ## Installing TVM
 
 Follow the instructions in https://tvm.apache.org/docs/install/index.html to install the TVM in conda environment
+
 TVM version in Git commit: 80de1239e (2021-09-25)
 
 ## Installing Glow
@@ -70,7 +72,7 @@ The second column separated by "$$$" in output_diff.txt is the max absolute diff
 
 We regard the mutated models whose absolute
 difference with their seed model greater than
-`10^-6` as error-triggering models.
+10^-4 as error-triggering models.
 Then we reduce those models by delta-debugging
 (see below).
 
@@ -91,7 +93,7 @@ if the following two conditions are
 satisfied:
 1. The maximum absolute difference
 of its prediction score with its seed model
-is greater than 10^-6.
+is greater than 10^-4.
 2. The model can be reduced by delta-debugging
 in a reasonable time (we set 48 hours).
 
