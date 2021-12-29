@@ -77,7 +77,7 @@ class MetaCompile:
             self.output.update({model_id: out})
 
             if not self.retain_build:
-                np.save(os.path.join(self.output_dir, model_id), out)
+                np.save(os.path.join(self.output_dir, "%s.npy" % model_id), out)
                 shutil.rmtree(build_dir)
 
     def run_only(self, compile_list, input_file):

@@ -11,8 +11,8 @@ conda install -c anaconda bazel==3.7.2
 
 ## Install onnx-tf
 ```shell
-git clone git@github.com:Wilbur-Django/onnx-tensorflow.gitcd onnx-tf
-cd onnx-tf
+git clone git@github.com:Wilbur-Django/onnx-tensorflow.git
+cd onnx-tensorflow
 pip install -e .
 ```
 
