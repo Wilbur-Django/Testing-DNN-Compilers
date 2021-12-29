@@ -1,5 +1,6 @@
 import os
 import shutil
+import numpy as np
 
 import tqdm
 
@@ -10,10 +11,11 @@ from utils.path_utils import clear_and_make_dir, file_name_no_ext, get_ext
 
 
 class MetaCompile:
-    def __init__(self, runner, result_dir, retain_result):
+    def __init__(self, runner, result_dir, retain_build):
         self.runner = runner
 
         self.build_root_dir = os.path.join(result_dir, "build")
+        self.output_dir = os.path.join(result_dir, "output")
         time_rec_dir = os.path.join(result_dir, "time_record")
         self.compile_time_file = os.path.join(time_rec_dir, "compile_time.txt")
         self.run_time_file = os.path.join(time_rec_dir, "run_time.txt")
@@ -23,7 +25,7 @@ class MetaCompile:
 
         # self.frac_compile = frac_compile
 
-        self.retain_result = retain_result
+        self.retain_build = retain_build
 
         self.output = {}
 
@@ -32,7 +34,7 @@ class MetaCompile:
 
     def get_build_dir(self, model_path):
         model_name = file_name_no_ext(model_path)
-        return os.path.join(self.build_root_dir, model_name) if self.retain_result \
+        return os.path.join(self.build_root_dir, model_name) if self.retain_build \
             else self.build_root_dir
 
     def handle_compilation_error(self, e: CompilationError, model_name, build_dir):
@@ -52,9 +54,14 @@ class MetaCompile:
     def compile_run(self, compile_list, input_file):
         it = time_iterator(compile_list, [self.compile_time_file, self.run_time_file])
 
+        self.runner.set_input(input_file)
+
         for model_path in tqdm.tqdm(it):
+            model_id = file_name_no_ext(model_path)
+
             build_dir = self.get_build_dir(model_path)
             clear_and_make_dir(build_dir)
+            clear_and_make_dir(self.output_dir)
 
             failed = self.cal_compile_time(it, model_path, build_dir)
             if failed:
@@ -65,10 +72,12 @@ class MetaCompile:
             if failed:
                 continue
 
-            print(self.get_output(build_dir))
-            self.output.update({file_name_no_ext(model_path): self.get_output(build_dir)})
+            out = self.get_output(build_dir)
+            print(out)
+            self.output.update({model_id: out})
 
-            if not self.retain_result:
+            if not self.retain_build:
+                np.save(os.path.join(self.output_dir, model_id), out)
                 shutil.rmtree(build_dir)
 
     def run_only(self, compile_list, input_file):

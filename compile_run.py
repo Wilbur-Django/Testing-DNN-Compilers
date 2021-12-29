@@ -17,4 +17,4 @@ print("Result saving directory is", result_dir)
 
 runner = make_runner(args.compiler_name, args.compiler_path, "default", True)
 compiler_run(runner, mutant_models_dir, args.input_data_path, result_dir,
-             args.retain_result, args.mode, args.compile_list)
+             args.retain_build, args.mode, args.compile_list)

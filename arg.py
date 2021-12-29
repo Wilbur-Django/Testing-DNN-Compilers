@@ -35,7 +35,7 @@ def mutants_args():
     arg_parser.add_argument("--mutation_method", choices=['universal', 'per_input', 'hybrid'],
                             default="hybrid", type=str)
 
-    arg_parser.add_argument("--compiler_name", choices=['glow', 'tvm', 'xla', 'glow-zoo', 'onnx'], default="glow", type=str)
+    arg_parser.add_argument("--compiler_name", choices=['glow', 'tvm', 'xla', 'tensorflow', 'glow-zoo', 'onnx'], default="glow", type=str)
     arg_parser.add_argument("--compiler_path", default="~/glow-build/bin/model-compiler", type=str)
     # arg_parser.add_argument("--compiler_path", default="~/tensorflow", type=str)
 
@@ -49,7 +49,7 @@ def compilation_args():
     arg_parser = mutants_args()
 
     arg_parser.add_argument("--compile_list", nargs="+", default=[], type=int)
-    arg_parser.add_argument("--retain_result", default=False, type=bool)
+    arg_parser.add_argument("--retain_build", default=False, type=bool)
     arg_parser.add_argument("--mode", default="compile_run", type=str)
     # arg_parser.add_argument("--frac_compile", default=1, type=int)
 
