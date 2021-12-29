@@ -21,7 +21,7 @@ class TfRunner(Runner):
 
     def set_input(self, input_data_path):
         self.input_data = np.load(input_data_path)
-        if self.input_data.shape[1] != self.input_shape[1]:
+        if self.input_shape is not None and self.input_data.shape[1] != self.input_shape[1]:
             self.input_data = np.transpose(self.input_data, (0, 2, 3, 1))
 
     def compile(self, model_path, build_dir):
@@ -41,6 +41,8 @@ class TfRunner(Runner):
         self.output_name = list(f.structured_outputs.keys())[0]
         self.input_shape = list(f.structured_input_signature[1].values())[0].shape
         self.f = f
+        if self.input_data is not None and self.input_data.shape[1] != self.input_shape[1]:
+            self.input_data = np.transpose(self.input_data, (0, 2, 3, 1))
 
     def run(self, run_dir):
         output = self.f(**{self.input_name: self.input_data})
