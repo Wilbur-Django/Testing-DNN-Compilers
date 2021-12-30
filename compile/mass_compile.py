@@ -56,12 +56,13 @@ class MetaCompile:
 
         self.runner.set_input(input_file)
 
+        clear_and_make_dir(self.output_dir)
+
         for model_path in tqdm.tqdm(it):
             model_id = file_name_no_ext(model_path)
 
             build_dir = self.get_build_dir(model_path)
             clear_and_make_dir(build_dir)
-            clear_and_make_dir(self.output_dir)
 
             failed = self.cal_compile_time(it, model_path, build_dir)
             if failed:
