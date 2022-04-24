@@ -46,7 +46,7 @@ XLA version in Git commit: 7b596c44 (2021-10-03)
 
 ## Preparing the folder structure
 
-Download this code. At the parent directory-level of the code directory, download https://www.dropbox.com/s/eurxspx01ie5w30/data.zip?dl=0 and unzip the data.zip to data/. 
+Download this code. At the parent directory-level of the code directory, download https://drive.google.com/file/d/1ODEKR016GTJLeHemgZ_JuIBoBz4AWtHC/view?usp=sharing and unzip the data.zip to data/. 
 
 Also, at the parent directory-level of the code, make directories `mutants/`, `compile_record/`, `debugging/`, for storing the results for mutation, compilation & running, and debugging, respectively.
 
