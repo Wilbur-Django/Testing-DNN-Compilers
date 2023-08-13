@@ -127,6 +127,6 @@ series = {SIGMETRICS/PERFORMANCE '22}
 </details>
 
 <p align="center">
-    <a href="https://dl.acm.org/doi/10.1145/3489048.3522655"><img src="https://img.shields.io/badge/Paper-SIGMETRICS'22-4975BB.svg"></a>
+    <a href="https://dl.acm.org/doi/10.1145/3489048.3522655"><img src="https://img.shields.io/badge/Short-2--Page_Version-4975BB.svg"></a>
     <a href="https://dl.acm.org/doi/abs/10.1145/3508035"><img src="https://img.shields.io/badge/Full-Full_Version-115878.svg"></a>
 </p>
