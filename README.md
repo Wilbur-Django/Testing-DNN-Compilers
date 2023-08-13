@@ -8,7 +8,7 @@ run mutation, compilation, and
 delta-debugging to reproduce the results in
 that paper.
 
-## System requirement
+## System requirements
 
 Operation system: Ubuntu 18.04LTS 
 
@@ -20,15 +20,17 @@ onnx: 1.10.1
 
 onnxruntime: 1.9.0
 
-tqdm
+tqdm: any version
 
-## Installing TVM
+## Prerequisites
 
-Follow the instructions in https://tvm.apache.org/docs/install/index.html to install the TVM in conda environment
+**Install TVM:**
+
+Follow the instructions in https://tvm.apache.org/docs/install/index.html to install the TVM in the conda environment.
 
 TVM version in Git commit: 80de1239e (2021-09-25)
 
-## Installing Glow
+**Install Glow:**
 
 Follow the instructions in https://github.com/pytorch/glow to install Glow. Built in release mode.
 
@@ -36,59 +38,55 @@ Glow version in Git commit: 0abd13adc (2021-09-21)
 
 Requirement: ubuntu 18.04, LLVM 7.0.1
 
-## Installing XLA
+**Install XLA:**
 
 Follow the instructions in compile/xla/install.md
 
 XLA version in Git commit: 7b596c44 (2021-10-03)
 
+**Prepare seed models:**
 
+Download this code. At the parent directory level of the code directory, download https://drive.google.com/file/d/1ODEKR016GTJLeHemgZ_JuIBoBz4AWtHC/view?usp=sharing and unzip the data.zip to data/. 
 
-## Preparing the folder structure
-
-Download this code. At the parent directory-level of the code directory, download https://drive.google.com/file/d/1ODEKR016GTJLeHemgZ_JuIBoBz4AWtHC/view?usp=sharing and unzip the data.zip to data/. 
-
-Also, at the parent directory-level of the code, make directories `mutants/`, `compile_record/`, `debugging/`, for storing the results for mutation, compilation & running, and debugging, respectively.
-
-
+Also, at the parent directory level of the code, make directories `mutants/`, `compile_record/`, and `debugging/` for storing the results for mutation, compilation & running, and debugging, respectively.
 
 ## Run mutation
 
-```shell
+```bash
 python emi_mutate.py --model_name [model-name] --seed_model_path [path for seed ONNX model] --input_data_path [default is ../data/data.npy] --seed_number [seed_number]
 ```
 
 You can find the mutated models at `../mutants/[model-name]/[seed_number]/hybrid/models/`. The number of model names means the mutant model derives from which iteration of mutation.
 
-## Run compilation & running
+## Run compilation and testing
 
-```shell
+```bash
 python compile_run.py --model_name [model-name] --seed_number [seed_number] --compiler_name [compiler-name] --compiler_path [compiler_path] input_data_path [default is ../data/data.npy]
 ```
 
-You can see the difference of mutants with seed model at `../compile_record/[compiler_name]/[model-name]/[seed_number]/hybrid/output_diff.txt`.
+You can see the difference of mutants with the seed model at `../compile_record/[compiler_name]/[model-name]/[seed_number]/hybrid/output_diff.txt`.
 
-The second column separated by "$$$" in output_diff.txt is the max absolute difference for the prediction score of the mutant model and the seed model. The first column is the mutant model's id.
+The second column separated by "$$$" in output_diff.txt is the max absolute difference between the prediction score of the mutant model and the seed models' prediction scores. The first column is the mutant model's id.
 
-We regard the mutated models whose absolute
-difference with their seed model greater than
-10^-4 as error-triggering models.
+We regard the mutated models whose absolute difference with their seed model is greater than 10^-4 as error-triggering models.
 Then we reduce those models by delta-debugging
 (see below).
 
 ## Run delta debugging
 
-```shell
+Assume that you have found some mutated models whose output significantly deviates from their seed model in the step [Run compilation and testing](#run-compilation-and-testing). The mutated models may be highly complex, with thousands of edges and nodes. Hence, directly debugging the mutated models to find root causes for output deviations is highly challenging. We provide a handy script to automatically shrink the size of the error-triggering mutants while still retaining the buggy behavior. The script is based on delta debugging, a standard approach to facilitating buggy input shrinking. Run the following command to execute it:
+
+```bash
 python debugging.py --model_name [model_name] --seed_number [seed_number] --compiler_name [compiler-name] --err_model_id [id number of the model you want to reduce]
 ```
 
 You can see the reduced model at `../debug/[compiler-name]/[model_name]/[seed_number]/hybrid/[err_model_id]/model.onnx`
 
-The dumped IR when the compiler is glow is `debug_info.txt` at same folder of the reduced model.
+The dumped IR when the compiler is glow is `debug_info.txt` in the same folder of the reduced model.
 
-## How we count bugs
+## How do we count bugs
 Note that we regard a mutated model as
-an error-triggering models if and only
+an error-triggering model if and only
 if the following two conditions are
 satisfied:
 1. The maximum absolute difference
