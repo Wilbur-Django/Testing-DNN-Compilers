@@ -1,7 +1,7 @@
 # Testing DNN Compilers
 This is the artifact for reproducing 
 the results in the paper 
-"Metamorphic Testing of Deep Learning Compilers" published in [SIGMETRICS 2022](https://sigmetrics.org/sigmetrics2022/). If you find it useful, please consider [citing our paper](#-paper).
+[Metamorphic Testing of Deep Learning Compilers](https://dl.acm.org/doi/abs/10.1145/3508035) published in [SIGMETRICS 2022](https://sigmetrics.org/sigmetrics2022/). If you find it useful, please consider [citing our paper](#-paper).
 
 Interested readers may follow the steps below to 
 run mutation, compilation, and 
