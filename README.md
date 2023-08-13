@@ -1,7 +1,7 @@
 # Testing DNN Compilers
 This is the artifact for reproducing 
 the results in the paper 
-"Metamorphic Testing of Deep Learning Compilers".
+"Metamorphic Testing of Deep Learning Compilers" published in [SIGMETRICS 2022](https://sigmetrics.org/sigmetrics2022/). If you find it useful, please consider [citing our paper](#-paper).
 
 Interested readers may follow the steps below to 
 run mutation, compilation, and 
@@ -100,3 +100,35 @@ in a reasonable time (we set 48 hours).
 An error-triggering model may be due to numeric
 accuracy deviation. We regard them as false
 positives in our paper.
+
+## 📜 Paper
+
+<details><summary><b>Metamorphic Testing of Deep Learning Compilers.</b> <i>[click :: citation]</i></summary>
+<div>
+
+```bibtex
+@inproceedings{10.1145/3489048.3522655,
+author = {Xiao, Dongwei and Liu, Zhibo and Yuan, Yuanyuan and Pang, Qi and Wang, Shuai},
+title = {Metamorphic Testing of Deep Learning Compilers},
+year = {2022},
+isbn = {9781450391412},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3489048.3522655},
+doi = {10.1145/3489048.3522655},
+booktitle = {Abstract Proceedings of the 2022 ACM SIGMETRICS/IFIP PERFORMANCE Joint International Conference on Measurement and Modeling of Computer Systems},
+pages = {65–66},
+numpages = {2},
+keywords = {deep learning, metamorphic testing},
+location = {Mumbai, India},
+series = {SIGMETRICS/PERFORMANCE '22}
+}
+```
+
+</div>
+</details>
+
+<p align="center">
+    <a href="https://dl.acm.org/doi/10.1145/3489048.3522655"><img src="https://img.shields.io/badge/Paper-SIGMETRICS'22-4975BB.svg"></a>
+    <a href="https://dl.acm.org/doi/abs/10.1145/3508035"><img src="https://img.shields.io/badge/Full-Full_Version-115878.svg"></a>
+</p>
