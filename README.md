@@ -40,13 +40,13 @@ Requirement: ubuntu 18.04, LLVM 7.0.1
 
 **Install XLA:**
 
-Follow the instructions in compile/xla/install.md
+Follow the instructions in [compile/xla/install.md](./compile/xla/install.md)
 
 XLA version in Git commit: 7b596c44 (2021-10-03)
 
 **Prepare seed models:**
 
-Download this code. At the parent directory level of the code directory, download https://drive.google.com/file/d/1ODEKR016GTJLeHemgZ_JuIBoBz4AWtHC/view?usp=sharing and unzip the data.zip to data/. 
+Download this code. At the parent directory level of the code directory, download [the seed model](https://zenodo.org/doi/10.5281/zenodo.10852329) and unzip the data.zip to data/. 
 
 Also, at the parent directory level of the code, make directories `mutants/`, `compile_record/`, and `debugging/` for storing the results for mutation, compilation & running, and debugging, respectively.
 
@@ -68,7 +68,7 @@ You can see the difference of mutants with the seed model at `../compile_record/
 
 The second column separated by "$$$" in output_diff.txt is the max absolute difference between the prediction score of the mutant model and the seed models' prediction scores. The first column is the mutant model's id.
 
-We regard the mutated models whose absolute difference with their seed model is greater than 10^-4 as error-triggering models.
+We regard the mutated models whose absolute difference with their seed model is greater than $ 10^{-4} $ as error-triggering models.
 Then we reduce those models by delta-debugging
 (see below).
 
@@ -91,7 +91,7 @@ if the following two conditions are
 satisfied:
 1. The maximum absolute difference
 of its prediction score with its seed model
-is greater than 10^-4.
+is greater than $ 10^{-4} $.
 2. The model can be reduced by delta-debugging
 in a reasonable time (we set 48 hours).
 
