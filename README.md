@@ -14,29 +14,23 @@ Operation system: Ubuntu 18.04LTS
 
 CPU: Intel(R) Xeon(R) CPU E5-2683 v4 @ 2.10GHz 16 cores
 
-Python package dependency (installed in conda environment):
-
-onnx: 1.10.1
-
-onnxruntime: 1.9.0
-
-tqdm: any version
+Python packages: `pip install -r requirements.txt`
 
 ## Prerequisites
 
 **Install TVM:**
 
-Follow the instructions in https://tvm.apache.org/docs/install/index.html to install the TVM in the conda environment.
+Download [TVM source code](https://github.com/apache/tvm.git) under commit 80de1239e (2021-09-25):
 
-TVM version in Git commit: 80de1239e (2021-09-25)
+Follow the instructions in the [official guide](https://tvm.apache.org/docs/install/index.html) to install TVM.
 
 **Install Glow:**
 
-Follow the instructions in https://github.com/pytorch/glow to install Glow. Built in release mode.
+Requirements: ubuntu 18.04, LLVM 7.0.1
 
-Glow version in Git commit: 0abd13adc (2021-09-21)
+Download [Glow source code](https://github.com/pytorch/glow.git) under commit 0abd13adc (2021-09-21)
 
-Requirement: ubuntu 18.04, LLVM 7.0.1
+Follow the instructions in https://github.com/pytorch/glow to install Glow and build in release mode.
 
 **Install XLA:**
 
@@ -46,9 +40,20 @@ XLA version in Git commit: 7b596c44 (2021-10-03)
 
 **Prepare seed models:**
 
-Download this code. At the parent directory level of the code directory, download [the seed model](https://zenodo.org/doi/10.5281/zenodo.10852329) and unzip the data.zip to data/. 
+1. Prepare a directory of your choice to hold the code, models, and data. Assume the directory is `dlcomp/`.
 
-Also, at the parent directory level of the code, make directories `mutants/`, `compile_record/`, and `debugging/` for storing the results for mutation, compilation & running, and debugging, respectively.
+2. Download this repo under `dlcomp/code/`.
+
+3. Download [the seed model](https://zenodo.org/doi/10.5281/zenodo.10852329) and extract it to `dlcomp/data/`.
+
+4. Run:
+
+```bash
+cd dlcomp
+mkdir -p mutants compile_record debugging
+```
+
+The `mutants/`, `compile_record/`, and `debugging/` are for storing the results for mutation, compilation & execution, and debugging, respectively.
 
 ## Run mutation
 
